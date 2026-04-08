@@ -117,6 +117,87 @@ The web app will be available at [http://localhost:3000](http://localhost:3000).
 
 ---
 
+## Synthetic Training Data
+
+The `scripts/generate_synthetic_users.py` script populates PostgreSQL with 300 synthetic Picnic user profiles and 52 weeks of order history for ML model training.
+
+### Prerequisites
+
+- Docker infrastructure running (`docker compose up -d`)
+- [uv](https://docs.astral.sh/uv/) installed
+
+### Generate the data
+
+```sh
+uv run --directory services/picky-recs python scripts/generate_synthetic_users.py \
+  --seed 42 \
+  --db-url "postgresql://picky:Password123@localhost:5432/primary" \
+  --clear-existing
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--seed` | `42` | RNG seed for reproducibility |
+| `--db-url` | `postgresql://picky:Password123@localhost:5432/primary` | PostgreSQL connection URL |
+| `--users-per-archetype` | `75` | Users per archetype (300 total) |
+| `--clear-existing` | off | Drop and recreate tables before inserting |
+| `--dry-run` | off | Generate data in memory, skip DB writes |
+
+### Schema
+
+Four tables are created in the `primary` database:
+
+| Table | Description |
+|---|---|
+| `synthetic_users` | Static user profiles (archetype, household, dietary, budget) |
+| `orders` | Weekly orders with spend, basket size, and contextual signals |
+| `order_items` | Individual line items with product, category, quantity, price |
+| `user_weekly_metrics` | Pre-computed ML feature vectors per user per week |
+
+### User archetypes
+
+| Archetype | Weekly spend | Key behaviour |
+|---|---|---|
+| `budget_student` | €25–50 | Regular Sunday orders, protein-heavy, month-end spend drop |
+| `big_family` | €70–100 | Large baskets, high variety, occasional skipped weeks |
+| `gym_goer` | €50–90 | Irregular schedule, 60% protein spend |
+| `vegetarian_couple` | €60–90 | No meat products, meal-plan oriented |
+
+### Reset the database
+
+To wipe all synthetic data and start fresh:
+
+```sh
+uv run --directory services/picky-recs python scripts/generate_synthetic_users.py \
+  --seed 42 \
+  --db-url "postgresql://picky:Password123@localhost:5432/primary" \
+  --clear-existing
+```
+
+Use a different `--seed` to get a different (but still reproducible) dataset.
+
+### Using the data for model training
+
+Query `user_weekly_metrics` joined with `synthetic_users` to get feature vectors:
+
+```python
+import pandas as pd
+import psycopg2
+
+conn = psycopg2.connect("postgresql://picky:Password123@localhost:5432/primary")
+
+df = pd.read_sql("""
+    SELECT m.*, u.archetype, u.budget_tier, u.household_type
+    FROM user_weekly_metrics m
+    JOIN synthetic_users u ON u.id = m.user_id
+    WHERE m.weekly_spend_cents > 0
+""", conn)
+```
+
+Key feature columns: `loyalty_staples_fraction`, `spend_trend`, `budget_util_rate`, `order_interval_consistency`, `protein_fraction`, `dairy_fraction`, `carbs_fraction`, `vegetables_fraction`, `snacks_fraction`, `pantry_depletion` (JSONB).
+
+---
+
 ## Team
 
 | Name                          | Mail           |

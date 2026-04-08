@@ -11,6 +11,7 @@ dependencies = [
     "pandas",
     "numpy",
     "skl2onnx",
+    "psycopg2-binary",
 ]
 
 [dependency-groups]
