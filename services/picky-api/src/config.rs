@@ -41,5 +41,11 @@ generate_config!(
     EMBEDDING_MODEL: Arc<str> = get_env_from,
     QDRANT_URL_HTTPS: Arc<str> = get_env_from,
     QDRANT_URL_GRPC: Arc<str> = get_env_from,
-    QDRANT_COLLECTION: Arc<str> = get_env_from
+    QDRANT_COLLECTION: Arc<str> = get_env_from,
+    S3_ENDPOINT_URL: Arc<str> = get_env_from,
+    S3_ACCESS_KEY_ID: Arc<str> = get_env_from,
+    S3_SECRET_ACCESS_KEY: SecretString = get_env_from,
+    S3_BUCKET: Arc<str> = get_env_from,
+    S3_MODEL_KEY: Arc<str> = get_env_from,
+    DATABASE_URL: Arc<str> = get_env_from
 );

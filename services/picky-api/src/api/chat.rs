@@ -20,14 +20,11 @@ use utoipa::ToSchema;
 use crate::oapi::AGENT_TAG;
 use crate::state::{AgentState, AppState};
 
-/// Incoming chat request body.
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct ChatRequest {
-    /// The plain-text message to send to the agent.
     pub message: String,
 }
 
-/// Chat with the AI agent and receive a streamed response.
 #[utoipa::path(
     post,
     path = "/chat",

@@ -1,5 +1,5 @@
 [package]
-name = "picky"
+name = "picky-api"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,26 +8,36 @@ edition = "2024"
 picky-axum = { workspace = true, features = ["oapi"] }
 picky-utils = { workspace = true }
 # AI & async
+ort = { workspace = true }
+ndarray = { workspace = true }
 rig-core = { workspace = true }
 rig-qdrant = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tokio-stream = { workspace = true }
+# Tracing
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 # Database
 qdrant-client = { workspace = true }
+sqlx = { workspace = true, features = ["runtime-tokio", "tls-native-tls", "postgres", "uuid"] }
+uuid = { workspace = true, features = ["v4", "serde"] }
 # Axum, Tokio and Tower
 axum = { workspace = true, features = ["macros", "tokio", "json", "tracing"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
-utoipa = { workspace = true, features = ["macros"] }
+utoipa = { workspace = true, features = ["macros", "uuid"] }
 utoipa-axum = { workspace = true }
 utoipa-scalar = { workspace = true, features = ["axum"] }
 # Serde
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 schemars = { workspace = true }
+# S3 / Object Storage
+aws-sdk-s3 = { workspace = true }
+aws-config = { workspace = true }
 # Other
+arc-swap = { workspace = true }
 anyhow = { workspace = true }
+bytes = { workspace = true }
 dotenvy = { workspace = true }
 http = { workspace = true }
 secrecy = { workspace = true }

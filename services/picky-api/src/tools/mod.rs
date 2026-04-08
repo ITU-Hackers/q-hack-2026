@@ -6,7 +6,9 @@
 
 mod error;
 mod knowledge;
+mod predict;
 
 pub use error::ToolError;
 
 pub use knowledge::SearchKnowledgeBase;
+pub use predict::PredictPreference;

@@ -1,0 +1,133 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO profiles (\n            email, password, adults, kids, dogs, cats,\n            cuisines, pref_fish, pref_pork, pref_beef, pref_dairy, pref_spicy,\n            restrictions, health_goal, cooking_time, budget\n         )\n         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)\n         RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "password",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "adults",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "kids",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "dogs",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "cats",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "cuisines",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "pref_fish",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "pref_pork",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "pref_beef",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "pref_dairy",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "pref_spicy",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "restrictions",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 14,
+        "name": "health_goal",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "cooking_time",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 16,
+        "name": "budget",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "TextArray",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "TextArray",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0889b30eba4c1b943992b7d1e81cce6b7b9a0b3834bba9fbab73add2a2547271"
+}

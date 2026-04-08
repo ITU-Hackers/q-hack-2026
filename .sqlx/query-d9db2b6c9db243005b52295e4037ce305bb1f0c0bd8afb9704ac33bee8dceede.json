@@ -1,0 +1,118 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM profiles WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "password",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "adults",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "kids",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "dogs",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "cats",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "cuisines",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "pref_fish",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "pref_pork",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "pref_beef",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "pref_dairy",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "pref_spicy",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "restrictions",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 14,
+        "name": "health_goal",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "cooking_time",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 16,
+        "name": "budget",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d9db2b6c9db243005b52295e4037ce305bb1f0c0bd8afb9704ac33bee8dceede"
+}

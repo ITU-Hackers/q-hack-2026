@@ -53,7 +53,7 @@ def training_data(context: AssetExecutionContext) -> pd.DataFrame:
 
 
 @asset(
-    description="Train a DecisionTreeClassifier on the static food preference"
+    description="Train a DecisionTreeClassifier on the static food preference "
     "data and export the model in ONNX format to S3 (MinIO).",
 )
 def trained_model(
@@ -71,17 +71,12 @@ def trained_model(
     accuracy = model.score(X, y)
     context.log.info(f"Training accuracy: {accuracy:.4f}")
 
-    # Convert to ONNX
-    initial_type = [("features", FloatTensorType([None, len(FEATURE_NAMES)]))]
-    onnx_model = convert_sklearn(
-        model,
-        "picky_recs_model",
-        initial_types=initial_type,
-        target_opset=15,
-    )
+    # Convert to ONNX format
+    initial_types = [("features", FloatTensorType([None, len(FEATURE_NAMES)]))]
+    onnx_model = convert_sklearn(model, "decision_tree", initial_types)
     # convert_sklearn returns ModelProto | None in stubs, but never returns None on success.
-    onnx_bytes: bytes = onnx_model.SerializeToString()  # type: ignore[union-attr]
-    context.log.info(f"ONNX model size: {len(onnx_bytes)} bytes")
+    model_bytes: bytes = onnx_model.SerializeToString()  # type: ignore[union-attr]
+    context.log.info(f"ONNX model size: {len(model_bytes)} bytes")
 
     # Ensure the bucket exists
     s3_client = s3.get_client()
@@ -94,7 +89,7 @@ def trained_model(
 
     # Upload the ONNX model
     with tempfile.NamedTemporaryFile(suffix=".onnx") as tmp:
-        tmp.write(onnx_bytes)
+        tmp.write(model_bytes)
         tmp.flush()
         s3_client.upload_file(
             Filename=tmp.name,
@@ -110,7 +105,7 @@ def trained_model(
             "accuracy": MetadataValue.float(accuracy),
             "s3_path": MetadataValue.text(s3_path),
             "format": MetadataValue.text("ONNX"),
-            "model_size_bytes": MetadataValue.int(len(onnx_bytes)),
+            "model_size_bytes": MetadataValue.int(len(model_bytes)),
             "features": MetadataValue.text(", ".join(FEATURE_NAMES)),
             "samples": MetadataValue.int(len(X)),
             "tree_depth": MetadataValue.int(model.get_depth()),

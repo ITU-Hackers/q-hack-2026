@@ -3,6 +3,7 @@ set -euo pipefail
 
 EXTRA_DATABASES=(
   "dagster"
+  "training"
 )
 
 for db in "${EXTRA_DATABASES[@]}"; do

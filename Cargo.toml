@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "services/picky"]
+members = ["crates/*", "services/picky-api"]
 
 [workspace.package]
 version = "0.1.0"
@@ -13,6 +13,9 @@ authors = ["Kasper Jønsson <kas@lerpz.com>"]
 # Internal
 picky-axum = { path = "crates/picky-axum" }
 picky-utils = { path = "crates/picky-utils" }
+# S3 / Object Storage
+aws-config = "1.6"
+aws-sdk-s3 = "1.82"
 # Database
 mongodb = "2.8"
 qdrant-client = "1.17"
@@ -37,12 +40,16 @@ tracing-subscriber = "0.3"
 serde = "1.0"
 serde_json = "1.0"
 # AI
+ort = "2.0.0-rc.9"
+ndarray = "0.17"
 rig-core = "0.34"
 rig-qdrant = "0.2"
 rmcp = "0.6"
 # Dev
 typst = "0.14.2"
 # Utilities
+arc-swap = "1.7"
+bytes = "1.10"
 anyhow = "1.0"
 argon2 = "0.5"
 base64 = "0.22"
@@ -51,16 +58,13 @@ dotenvy = "0.15"
 rand = "0.9"
 regex = "1.11"
 reqwest = "0.12"
+prost = "0.14"
 schemars = "1.0"
 secrecy = "0.10"
 strum = "0.27"
 thiserror = "2.0"
 uuid = "1.18"
 
-[workspace.lints.clippy]
-unwrap_used = "deny"
-
-# For beginning of project only
 [workspace.lints.rust]
 unused_imports = "allow"
 unused_variables = "allow"

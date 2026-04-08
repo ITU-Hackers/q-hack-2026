@@ -11,7 +11,7 @@
 ///
 /// ```ignore
 /// use std::sync::LazyLock;
-/// use lerpz_utils::{
+/// use picky_utils::{
 ///     generate_config,
 ///     env::{get_env, get_env_parse}
 /// };

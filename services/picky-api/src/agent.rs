@@ -17,6 +17,8 @@ use crate::tools::SearchKnowledgeBase;
 
 const RAG_TOP_N: usize = 5;
 
+pub type SharedAgent = std::sync::Arc<Agent>;
+
 pub type Agent = rig::agent::Agent<ResponsesCompletionModel>;
 
 #[instrument()]

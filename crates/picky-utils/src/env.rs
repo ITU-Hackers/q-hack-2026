@@ -6,7 +6,7 @@
 //! # Examples
 //!
 //! ```ignore
-//! use lerpz_utils::env::{get_env, get_env_parse};
+//! use picky_utils::env::{get_env, get_env_parse};
 //!
 //! // Get a simple string value
 //! let path = get_env("PATH").expect("PATH should be set");
@@ -41,7 +41,7 @@ pub enum Error {
 /// # Examples
 ///
 /// ```ignore
-/// use lerpz_utils::env::get_env;
+/// use picky_utils::env::get_env;
 ///
 /// // Set a variable for this example
 /// std::env::set_var("MY_VAR", "hello");
@@ -70,7 +70,7 @@ where
 /// # Examples
 ///
 /// ```ignore
-/// use lerpz_utils::env::get_env_parse;
+/// use picky_utils::env::get_env_parse;
 ///
 /// // Parse a number
 /// std::env::set_var("PORT", "8080");
@@ -116,7 +116,7 @@ where
 /// ```ignore
 /// use std::path::PathBuf;
 ///
-/// use lerpz_utils::env::get_env_from;
+/// use picky_utils::env::get_env_from;
 ///
 /// std::env::set_var("CONFIG_PATH", "/etc/config");
 /// let path: PathBuf = get_env_from("CONFIG_PATH").unwrap();

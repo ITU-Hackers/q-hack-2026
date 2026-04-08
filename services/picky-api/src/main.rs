@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use axum::Json;
 use axum::response::{IntoResponse, Redirect};
 use axum::routing::get;
 use http::Method;
 use picky_axum::shutdown_signal;
+use secrecy::ExposeSecret;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
@@ -17,7 +20,8 @@ use crate::state::AppState;
 mod agent;
 mod api;
 mod config;
-mod food2vec;
+mod model;
+mod model_watcher;
 mod oapi;
 mod portkey;
 mod state;
@@ -34,25 +38,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            EnvFilter::from(format!(
-                "{}=debug,lerpz=debug,none",
-                env!("CARGO_CRATE_NAME")
-            ))
+            EnvFilter::from(format!("{}=debug,none", env!("CARGO_CRATE_NAME")))
         }))
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let agent = agent::build_agent().await?;
+    // Build the S3 client for model downloads.
+    // MinIO requires path-style addressing (http://host:port/bucket/key)
+    // instead of the default virtual-hosted style (http://bucket.host:port/key).
+    // We supply explicit credentials so the SDK doesn't fall back to
+    // ~/.aws/credentials (which may contain unrelated AWS session tokens).
+    let s3_creds = aws_sdk_s3::config::Credentials::new(
+        CONFIG.S3_ACCESS_KEY_ID.as_ref(),
+        CONFIG.S3_SECRET_ACCESS_KEY.expose_secret(),
+        None, // session token
+        None, // expiry
+        "picky-env",
+    );
+    let s3_config = aws_config::defaults(aws_config::BehaviorVersion::latest())
+        .endpoint_url(CONFIG.S3_ENDPOINT_URL.as_ref())
+        .region(aws_config::Region::new("us-east-1"))
+        .credentials_provider(s3_creds)
+        .load()
+        .await;
+    let s3_client = aws_sdk_s3::Client::from_conf(
+        aws_sdk_s3::config::Builder::from(&s3_config)
+            .force_path_style(true)
+            .build(),
+    );
 
-    #[cfg(debug_assertions)]
-    let food2vec_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("models")
-        .join("food2vec.txt");
-    #[cfg(not(debug_assertions))]
-    let food2vec_path = std::path::PathBuf::from("models/food2vec.txt");
+    // Spawn the background model watcher (polls S3 for decision-tree model changes).
+    let (shared_model, _model_watcher_handle) = model_watcher::spawn(
+        s3_client,
+        CONFIG.S3_BUCKET.to_string(),
+        CONFIG.S3_MODEL_KEY.to_string(),
+        None,
+    );
 
-    let embeddings = food2vec::load(&food2vec_path)?;
-    let state = AppState::new(agent, embeddings);
+    // Connect to PostgreSQL.
+    let db_pool = sqlx::PgPool::connect(CONFIG.DATABASE_URL.as_ref()).await?;
+    sqlx::migrate!().run(&db_pool).await?;
+
+    let agent = Arc::new(agent::build_agent().await?);
+    let state = AppState::new(agent, shared_model, db_pool);
 
     let cors = CorsLayer::new()
         .allow_origin(CONFIG.ALLOWED_ORIGINS.clone())
