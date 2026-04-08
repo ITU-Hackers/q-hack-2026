@@ -1,3 +1,6 @@
+"use client"
+
+import { useRouter } from "next/navigation"
 import {
     Card,
     CardHeader,
@@ -7,19 +10,34 @@ import {
 } from "@workspace/ui/components/card"
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
-import { IconShoppingCart, IconPlus, IconMinus } from "@tabler/icons-react"
-
-const cartItems = [
-    { id: 1, name: "Chicken Breast", quantity: 2, unit: "500g", price: 4.99, emoji: "🍗" },
-    { id: 2, name: "Basmati Rice", quantity: 1, unit: "1kg", price: 2.49, emoji: "🍚" },
-    { id: 3, name: "Fresh Basil", quantity: 1, unit: "bunch", price: 1.29, emoji: "🌿" },
-    { id: 4, name: "Cherry Tomatoes", quantity: 1, unit: "250g", price: 1.99, emoji: "🍅" },
-    { id: 5, name: "Mozzarella", quantity: 2, unit: "125g", price: 1.79, emoji: "🧀" },
-]
-
-const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+import { IconShoppingCart, IconTrash } from "@tabler/icons-react"
+import { useCart } from "../cart-context"
 
 export default function CartPage() {
+    const { items, selectedRecipes, removeItem, purchase } = useCart()
+    const router = useRouter()
+
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+    // Group items by recipe source
+    const grouped = selectedRecipes.map((recipe) => ({
+        recipe,
+        ingredients: items.filter((i) => i.recipeSource === recipe),
+    })).filter((g) => g.ingredients.length > 0)
+
+    if (items.length === 0) {
+        return (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4">
+                <IconShoppingCart className="size-12 text-muted-foreground" />
+                <h2 className="text-lg font-semibold text-foreground">Your cart is empty</h2>
+                <p className="text-sm text-muted-foreground">
+                    Head to Meals and we'll predict your weekly basket!
+                </p>
+                <Button onClick={() => router.push("/browse")}>Browse Meals</Button>
+            </div>
+        )
+    }
+
     return (
         <div className="mx-auto max-w-lg px-4 py-8">
             <div className="mb-6 flex items-center gap-3">
@@ -27,50 +45,60 @@ export default function CartPage() {
                 <h1 className="text-2xl font-bold text-foreground">Your Cart</h1>
             </div>
 
-            <Card>
-                <CardContent className="flex flex-col gap-0 p-0">
-                    {cartItems.map((item, i) => (
-                        <div key={item.id}>
-                            <div className="flex items-center gap-4 px-6 py-4">
-                                <span className="text-2xl">{item.emoji}</span>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-foreground">
-                                        {item.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {item.unit}
-                                    </p>
+            <div className="flex flex-col gap-4">
+                {grouped.map(({ recipe, ingredients }) => (
+                    <Card key={recipe}>
+                        <CardHeader>
+                            <CardTitle className="text-base">{recipe}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-0 p-0">
+                            {ingredients.map((item, i) => (
+                                <div key={item.id}>
+                                    <div className="flex items-center gap-4 px-6 py-3">
+                                        <span className="text-2xl">{item.emoji}</span>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-foreground">
+                                                {item.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {item.quantity} {item.unit}
+                                            </p>
+                                        </div>
+                                        <span className="text-sm font-medium tabular-nums text-foreground">
+                                            &euro;{(item.price * item.quantity).toFixed(2)}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-xs"
+                                            onClick={() => removeItem(item.id)}
+                                        >
+                                            <IconTrash className="size-3.5 text-muted-foreground" />
+                                        </Button>
+                                    </div>
+                                    {i < ingredients.length - 1 && <Separator />}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="icon-xs">
-                                        <IconMinus className="size-3" />
-                                    </Button>
-                                    <span className="w-5 text-center text-sm font-medium tabular-nums">
-                                        {item.quantity}
-                                    </span>
-                                    <Button variant="outline" size="icon-xs">
-                                        <IconPlus className="size-3" />
-                                    </Button>
-                                </div>
-                                <span className="w-14 text-right text-sm font-medium tabular-nums">
-                                    €{(item.price * item.quantity).toFixed(2)}
-                                </span>
-                            </div>
-                            {i < cartItems.length - 1 && <Separator />}
-                        </div>
-                    ))}
-                </CardContent>
-                <CardFooter className="flex items-center justify-between border-t border-border pt-6">
-                    <span className="text-sm text-muted-foreground">
-                        {cartItems.length} items
-                    </span>
-                    <span className="text-lg font-semibold text-foreground">
-                        €{total.toFixed(2)}
-                    </span>
-                </CardFooter>
-            </Card>
+                            ))}
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
 
-            <Button className="mt-4 w-full">
+            <div className="mt-6 flex items-center justify-between px-1">
+                <span className="text-sm text-muted-foreground">
+                    {items.length} items
+                </span>
+                <span className="text-lg font-semibold text-foreground">
+                    &euro;{total.toFixed(2)}
+                </span>
+            </div>
+
+            <Button
+                className="mt-4 w-full"
+                onClick={() => {
+                    purchase()
+                    router.push("/browse")
+                }}
+            >
                 Order with Picnic
             </Button>
         </div>
