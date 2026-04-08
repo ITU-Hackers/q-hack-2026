@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
     Carousel,
@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/carousel"
 import Image from "next/image"
 import { Button } from "@workspace/ui/components/button"
+import { IconX, IconSparkles } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { useCart } from "../cart-context"
 
@@ -80,65 +81,112 @@ function DishRow({ title, dishes }: { title: string; dishes: Dish[] }) {
                         </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
+                <CarouselPrevious className="left-2 -mt-5" />
+                <CarouselNext className="right-2 -mt-5" />
             </Carousel>
         </section>
     )
 }
 
+function showPickyToast(
+    msg: string,
+    onConfirm: () => void,
+    onDismiss: () => void,
+) {
+    toast.dismiss()
+    toast.custom(
+        (id) => (
+            <div className="relative mx-2 flex w-[min(460px,92vw)] items-end">
+                <Image
+                    src="/picky-mascot.png"
+                    alt="Picky"
+                    width={96}
+                    height={96}
+                    className="relative z-10 -mr-2 -mb-1 shrink-0 drop-shadow-lg"
+                />
+                <div className="relative flex flex-1 flex-col gap-2 rounded-xl border border-border bg-background p-3 shadow-lg">
+                    <button
+                        className="absolute top-2 right-2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                            toast.dismiss(id)
+                            onDismiss()
+                        }}
+                    >
+                        <IconX className="size-3.5" />
+                    </button>
+                    <p className="pr-5 text-base font-medium leading-snug text-foreground">
+                        {msg}
+                    </p>
+                    <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                            toast.dismiss(id)
+                            onConfirm()
+                        }}
+                    >
+                        View Cart
+                    </Button>
+                </div>
+            </div>
+        ),
+        { duration: Infinity },
+    )
+}
+
 export default function BrowsePage() {
-    const { notification, items, generateBasket, dismissNotification } = useCart()
+    const { notification, items, hasPendingPrediction, predictBasket, confirmBasket, dismissNotification } = useCart()
     const router = useRouter()
+    const [toastDismissed, setToastDismissed] = useState(false)
+    const lastNotification = useRef<string | null>(null)
 
     useEffect(() => {
-        if (items.length === 0) {
-            const timer = setTimeout(() => generateBasket(), 600)
+        if (items.length === 0 && !notification && !hasPendingPrediction) {
+            const timer = setTimeout(() => predictBasket(), 600)
             return () => clearTimeout(timer)
         }
-    }, [items.length, generateBasket])
+    }, [items.length, notification, hasPendingPrediction, predictBasket])
 
     useEffect(() => {
         if (notification) {
-            toast.custom(
-                (id) => (
-                    <div className="relative flex w-[min(460px,92vw)] items-end">
-                        <Image
-                            src="/picky-mascot.png"
-                            alt="Picky"
-                            width={96}
-                            height={96}
-                            className="relative z-10 -mr-2 -mb-1 shrink-0 drop-shadow-lg"
-                        />
-                        <div className="flex flex-1 items-center gap-1.5 rounded-xl border border-secondary/30 bg-secondary py-1.5 pr-1.5 pl-3 shadow-lg">
-                            <p className="flex-1 text-sm font-medium leading-tight text-primary-foreground">
-                                {notification}
-                            </p>
-                            <Button
-                                variant="outline"
-                                size="xs"
-                                className="shrink-0 border-primary-foreground/30 bg-transparent text-xs text-primary-foreground hover:bg-primary-foreground/10"
-                                onClick={() => {
-                                    toast.dismiss(id)
-                                    dismissNotification()
-                                    router.push("/cart")
-                                }}
-                            >
-                                View Cart
-                            </Button>
-                        </div>
-                    </div>
-                ),
-                { duration: 8000, onDismiss: dismissNotification, onAutoClose: dismissNotification },
+            lastNotification.current = notification
+            dismissNotification()
+            setToastDismissed(false)
+            showPickyToast(
+                notification,
+                () => {
+                    confirmBasket()
+                    setToastDismissed(false)
+                    router.push("/cart")
+                },
+                () => setToastDismissed(true),
             )
         }
-    }, [notification, dismissNotification, router])
+    }, [notification, dismissNotification, confirmBasket, router])
+
+    const reopenToast = () => {
+        if (lastNotification.current) {
+            setToastDismissed(false)
+            showPickyToast(
+                lastNotification.current,
+                () => {
+                    confirmBasket()
+                    setToastDismissed(false)
+                    router.push("/cart")
+                },
+                () => setToastDismissed(true),
+            )
+        } else {
+            predictBasket()
+        }
+    }
 
     return (
         <div className="min-h-screen bg-background py-10">
             <header className="mb-10 px-8 sm:px-16">
                 <h1 className="text-3xl font-bold text-primary">Browse Dishes</h1>
-                {items.length > 0 && !notification && (
+                {items.length > 0 && (
                     <p className="mt-1 text-sm text-muted-foreground">
                         {items.length} items in your predicted basket
                     </p>
@@ -150,6 +198,15 @@ export default function BrowsePage() {
                 <DishRow title="Popular Right Now" dishes={popularNow} />
                 <DishRow title="Indian Cuisine" dishes={indianCuisine} />
             </div>
+
+            {toastDismissed && (
+                <button
+                    onClick={reopenToast}
+                    className="fixed bottom-20 right-4 z-50 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
+                >
+                    <IconSparkles className="size-5" />
+                </button>
+            )}
         </div>
     )
 }

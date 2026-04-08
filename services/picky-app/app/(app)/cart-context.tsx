@@ -116,7 +116,9 @@ type CartState = {
     items: Ingredient[]
     selectedRecipes: string[]
     notification: string | null
-    generateBasket: () => void
+    hasPendingPrediction: boolean
+    predictBasket: () => void
+    confirmBasket: () => void
     removeItem: (id: string) => void
     purchase: () => void
     dismissNotification: () => void
@@ -142,9 +144,10 @@ function pickRandom<T>(arr: T[], count: number): T[] {
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const [items, setItems] = useState<Ingredient[]>([])
     const [selectedRecipes, setSelectedRecipes] = useState<string[]>([])
+    const [pendingItems, setPendingItems] = useState<Ingredient[]>([])
     const [notification, setNotification] = useState<string | null>(null)
 
-    const generateBasket = useCallback(() => {
+    const predictBasket = useCallback(() => {
         const count = 2 + Math.floor(Math.random() * 2) // 2–3 recipes
         const recipes = pickRandom(RECIPE_NAMES, count)
         setSelectedRecipes(recipes)
@@ -169,11 +172,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             }
         }
 
-        setItems(newItems)
+        setPendingItems(newItems)
         setNotification(
-            `Hey its Picky and i predicted your weekly basket!!! ${recipes.length} meals, ${newItems.length} items ready to go.`,
+            `Hey it's Picky! I predicted your weekly basket — ${recipes.length} meals, ${newItems.length} items ready to go.`,
         )
     }, [])
+
+    const confirmBasket = useCallback(() => {
+        setItems(pendingItems)
+        setPendingItems([])
+        setNotification(null)
+    }, [pendingItems])
 
     const removeItem = useCallback((id: string) => {
         setItems((prev) => prev.filter((i) => i.id !== id))
@@ -181,6 +190,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const purchase = useCallback(() => {
         setItems([])
+        setPendingItems([])
         setSelectedRecipes([])
         setNotification(null)
     }, [])
@@ -195,7 +205,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 items,
                 selectedRecipes,
                 notification,
-                generateBasket,
+                hasPendingPrediction: pendingItems.length > 0,
+                predictBasket,
+                confirmBasket,
                 removeItem,
                 purchase,
                 dismissNotification,
