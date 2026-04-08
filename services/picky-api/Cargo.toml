@@ -19,7 +19,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 # Database
 qdrant-client = { workspace = true }
-sqlx = { workspace = true, features = ["runtime-tokio", "tls-native-tls", "postgres", "uuid"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "tls-native-tls", "postgres", "uuid", "migrate"] }
 uuid = { workspace = true, features = ["v4", "serde"] }
 # Axum, Tokio and Tower
 axum = { workspace = true, features = ["macros", "tokio", "json", "tracing"] }

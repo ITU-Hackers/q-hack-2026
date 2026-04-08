@@ -21,7 +21,6 @@ pub type SharedAgent = std::sync::Arc<Agent>;
 
 pub type Agent = rig::agent::Agent<ResponsesCompletionModel>;
 
-#[instrument()]
 pub async fn build_agent() -> anyhow::Result<Agent> {
     let portkey_client = build_portkey_client(
         &CONFIG.PORTKEY_BASE_URL,

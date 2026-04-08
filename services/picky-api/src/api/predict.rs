@@ -2,7 +2,7 @@
 
 use axum::{Json, extract::State};
 use http::StatusCode;
-use picky_axum::error::{HandlerError, HandlerErrorSchema};
+use picky_axum::error::{HandlerError, HandlerErrorSchema, HandlerResult};
 
 use crate::model::{PredictFeatures, PredictOutput};
 use crate::oapi::RECS_TAG;
@@ -35,7 +35,7 @@ use crate::state::{AppState, ModelState};
 pub async fn handler(
     State(model_state): State<ModelState>,
     Json(payload): Json<PredictFeatures>,
-) -> Result<Json<PredictOutput>, HandlerError> {
+) -> HandlerResult<Json<PredictOutput>> {
     let model_guard = model_state.load();
     let model = model_guard.as_ref().as_ref().ok_or_else(|| {
         HandlerError::new(

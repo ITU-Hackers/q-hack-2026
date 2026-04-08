@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM profiles ORDER BY email",
+  "query": "SELECT * FROM profiles WHERE email = $1",
   "describe": {
     "columns": [
       {
@@ -90,7 +90,9 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Text"
+      ]
     },
     "nullable": [
       false,
@@ -112,5 +114,5 @@
       false
     ]
   },
-  "hash": "8a0283f97e5bc00ec262fcaef04c1ed8e26aa722a7ef6c1dc28f5df7a2ed30e6"
+  "hash": "cc1708d90195cd64197a469318036f83f414afe1b76c6c924454abe1ea34d8aa"
 }

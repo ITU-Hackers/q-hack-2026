@@ -131,6 +131,8 @@ services:
       dockerfile: services/picky-recs/Dockerfile
     env_file:
       - ./services/picky-recs/.env
+    environment:
+      - DAGSTER_POSTGRES_URL=postgresql://picky:Password123@postgres.picky.local:5432/dagster
     volumes:
       - ./services/picky-recs/picky_recs:/opt/dagster/app/services/picky-recs/picky_recs
       - ./services/picky-recs/definitions.py:/opt/dagster/app/services/picky-recs/definitions.py

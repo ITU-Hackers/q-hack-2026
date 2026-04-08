@@ -2,7 +2,7 @@
 
 use axum::{Json, extract::State};
 use http::StatusCode;
-use picky_axum::error::{HandlerError, HandlerErrorSchema};
+use picky_axum::error::{HandlerError, HandlerErrorSchema, HandlerResult};
 
 use crate::oapi::PROFILE_TAG;
 use crate::state::{AppState, DbState};
@@ -47,7 +47,7 @@ use super::model::{CreateProfile, Profile, ProfileRow};
 pub async fn handler(
     State(db): State<DbState>,
     Json(payload): Json<CreateProfile>,
-) -> Result<(StatusCode, Json<Profile>), HandlerError> {
+) -> HandlerResult<(StatusCode, Json<Profile>)> {
     let prefs = payload.preferences.unwrap_or_default();
 
     let row = sqlx::query_as!(

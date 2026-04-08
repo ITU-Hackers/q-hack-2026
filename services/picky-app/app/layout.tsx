@@ -3,6 +3,7 @@ import { Geist_Mono, Inter } from "next/font/google";
 
 import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
+import { UserProvider } from "@/lib/user-context";
 
 export const metadata: Metadata = {
   title: "Picky",
@@ -48,7 +49,9 @@ export default function RootLayout({
         inter.variable,
       )}
     >
-      <body>{children}</body>
+      <body>
+        <UserProvider>{children}</UserProvider>
+      </body>
     </html>
   );
 }

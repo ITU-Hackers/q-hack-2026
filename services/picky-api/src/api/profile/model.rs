@@ -210,3 +210,14 @@ pub struct UpdateProfile {
     #[schema(example = "flexible")]
     pub budget: Option<String>,
 }
+
+/// Request body for logging in.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct LoginRequest {
+    /// The user's email address.
+    #[schema(example = "alice@example.com")]
+    pub email: String,
+    /// The user's password.
+    #[schema(example = "s3cret")]
+    pub password: String,
+}

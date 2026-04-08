@@ -5,7 +5,7 @@ use axum::{
     extract::{Path, State},
 };
 use http::StatusCode;
-use picky_axum::error::{HandlerError, HandlerErrorSchema};
+use picky_axum::error::{HandlerError, HandlerErrorSchema, HandlerResult};
 use uuid::Uuid;
 
 use crate::oapi::PROFILE_TAG;
@@ -60,7 +60,7 @@ pub async fn handler(
     State(db): State<DbState>,
     Path(id): Path<String>,
     Json(payload): Json<UpdateProfile>,
-) -> Result<Json<Profile>, HandlerError> {
+) -> HandlerResult<Json<Profile>> {
     let uuid = Uuid::parse_str(&id).map_err(|_| {
         HandlerError::new(
             StatusCode::BAD_REQUEST,

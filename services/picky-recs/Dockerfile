@@ -19,6 +19,8 @@ RUN uv sync --frozen --no-dev --package picky-recs
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
 RUN mkdir -p ${DAGSTER_HOME}
 
+COPY services/dagster/dagster_home/dagster.yaml ${DAGSTER_HOME}/dagster.yaml
+
 EXPOSE 4000
 
 ENTRYPOINT ["uv", "run", "--package", "picky-recs", "dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-m", "picky_recs"]

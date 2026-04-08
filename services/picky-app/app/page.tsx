@@ -37,7 +37,10 @@ import {
 import { Separator } from "@workspace/ui/components/separator";
 import { Slider } from "@workspace/ui/components/slider";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ApiError, createProfile, loginProfile } from "@/lib/api";
+import { useUser } from "@/lib/user-context";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -352,15 +355,26 @@ export default function Page() {
     budget: "moderate",
   });
 
+  const { user, mounted, setUser } = useUser();
+  const router = useRouter();
+
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Redirect to the app if the user is already logged in.
+  useEffect(() => {
+    if (mounted && user) {
+      router.replace("/browse");
+    }
+  }, [mounted, user, router]);
+
+  // Show nothing while determining auth state to avoid a flash.
+  if (!mounted || user) return null;
+
   function next() {
-    setStep((s) => {
-      const nextStep = s + 1;
-      if (nextStep === TOTAL_STEPS + 1) {
-        console.log("--- Picky onboarding data ---");
-        console.log(JSON.stringify(data, null, 2));
-      }
-      return nextStep;
-    });
+    setStep((s) => s + 1);
   }
 
   function back() {
@@ -387,6 +401,69 @@ export default function Page() {
 
   function isRestricted(item: (typeof PREFERENCE_ITEMS)[number]) {
     return item.restrictedBy.some((r) => data.restrictions.includes(r));
+  }
+
+  async function handleLogin() {
+    if (!data.email || !data.password) return;
+    setIsLoginLoading(true);
+    setLoginError(null);
+    try {
+      const profile = await loginProfile(data.email, data.password);
+      setUser(profile);
+      router.replace("/browse");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 404) {
+          // No account yet — proceed to onboarding wizard to create one.
+          next();
+        } else if (err.status === 401) {
+          setLoginError("Incorrect password. Please try again.");
+        } else {
+          setLoginError("Something went wrong. Please try again.");
+        }
+      } else {
+        setLoginError("Could not reach the server. Please try again.");
+      }
+    } finally {
+      setIsLoginLoading(false);
+    }
+  }
+
+  async function handleFinish() {
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      const profile = await createProfile({
+        email: data.email,
+        password: data.password,
+        adults: data.adults,
+        kids: data.kids,
+        dogs: data.dogs,
+        cats: data.cats,
+        cuisines: data.cuisines,
+        preferences: {
+          fish: data.preferences.fish ?? 0,
+          pork: data.preferences.pork ?? 0,
+          beef: data.preferences.beef ?? 0,
+          dairy: data.preferences.dairy ?? 0,
+          spicy: data.preferences.spicy ?? 0,
+        },
+        restrictions: data.restrictions,
+        health_goal: data.healthGoal,
+        cooking_time: data.cookingTime,
+        budget: data.budget,
+      });
+      setUser(profile);
+      next();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setCreateError("An account with this email already exists.");
+      } else {
+        setCreateError("Failed to create your account. Please try again.");
+      }
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -431,12 +508,19 @@ export default function Page() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
-            <Button className="w-full" onClick={next}>
-              Sign In
+            {loginError && (
+              <p className="text-center text-sm text-destructive">{loginError}</p>
+            )}
+            <Button
+              className="w-full"
+              onClick={handleLogin}
+              disabled={isLoginLoading || !data.email || !data.password}
+            >
+              {isLoginLoading ? "Signing in…" : "Sign In"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Next we&apos;ll ask a few quick questions to personalise your
-              shopping and meal planning experience.
+              No account yet? Enter your email and a password and we&apos;ll
+              set one up for you.
             </p>
           </CardFooter>
         </Card>
@@ -951,24 +1035,32 @@ export default function Page() {
             </>
           )}
 
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={back}>
-              <IconArrowLeft className="size-4" />
-              Back
-            </Button>
-            <Button onClick={next}>
-              {step === TOTAL_STEPS ? (
-                <>
-                  Finish
-                  <IconCheck className="size-4" />
-                </>
-              ) : (
-                <>
-                  Next
-                  <IconArrowRight className="size-4" />
-                </>
-              )}
-            </Button>
+          <CardFooter className="flex flex-col gap-3">
+            {createError && (
+              <p className="text-center text-sm text-destructive">{createError}</p>
+            )}
+            <div className="flex w-full justify-between">
+              <Button variant="outline" onClick={back} disabled={isCreating}>
+                <IconArrowLeft className="size-4" />
+                Back
+              </Button>
+              <Button
+                onClick={step === TOTAL_STEPS ? handleFinish : next}
+                disabled={isCreating}
+              >
+                {step === TOTAL_STEPS ? (
+                  <>
+                    {isCreating ? "Creating…" : "Finish"}
+                    <IconCheck className="size-4" />
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <IconArrowRight className="size-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>
