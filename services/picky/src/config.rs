@@ -27,6 +27,7 @@ enum Env {
 ///
 /// Lazy loaded using [`LazyLock`] to ensure that the configuration is only
 /// loaded once.
+#[allow(clippy::unwrap_used)]
 pub static CONFIG: LazyLock<Config> = LazyLock::new(|| Config::from_env().unwrap());
 
 generate_config!(

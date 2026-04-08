@@ -17,6 +17,7 @@ use crate::state::AppState;
 mod agent;
 mod api;
 mod config;
+mod food2vec;
 mod oapi;
 mod portkey;
 mod state;
@@ -42,7 +43,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let agent = agent::build_agent().await?;
-    let state = AppState::new(agent);
+
+    #[cfg(debug_assertions)]
+    let food2vec_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("models")
+        .join("food2vec.txt");
+    #[cfg(not(debug_assertions))]
+    let food2vec_path = std::path::PathBuf::from("models/food2vec.txt");
+
+    let embeddings = food2vec::load(&food2vec_path)?;
+    let state = AppState::new(agent, embeddings);
 
     let cors = CorsLayer::new()
         .allow_origin(CONFIG.ALLOWED_ORIGINS.clone())
