@@ -12,6 +12,7 @@ dependencies = [
     "numpy",
     "skl2onnx",
     "psycopg2-binary",
+    "qdrant-client",
 ]
 
 [dependency-groups]
