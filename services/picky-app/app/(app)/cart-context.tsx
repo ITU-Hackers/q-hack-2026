@@ -248,11 +248,14 @@ type CartState = {
   selectedRecipes: string[];
   notification: string | null;
   hasPendingPrediction: boolean;
+  toastDismissed: boolean;
+  pendingMessage: string | null;
   predictBasket: () => void;
   confirmBasket: () => void;
   removeItem: (id: string) => void;
   purchase: () => void;
   dismissNotification: () => void;
+  setToastDismissed: (v: boolean) => void;
 };
 
 const CartContext = createContext<CartState | null>(null);
@@ -273,6 +276,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
   const [pendingItems, setPendingItems] = useState<Ingredient[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
+  const [toastDismissed, setToastDismissed] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const predictBasket = useCallback(() => {
     const count = 2 + Math.floor(Math.random() * 2);
@@ -299,16 +304,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    const msg = `Hey it's Picky! I predicted your weekly basket — ${recipes.length} meals, ${newItems.length} items ready to go.`;
     setPendingItems(newItems);
-    setNotification(
-      `Hey it's Picky! I predicted your weekly basket — ${recipes.length} meals, ${newItems.length} items ready to go.`,
-    );
+    setPendingMessage(msg);
+    setNotification(msg);
+    setToastDismissed(false);
   }, []);
 
   const confirmBasket = useCallback(() => {
     setItems(pendingItems);
     setPendingItems([]);
+    setPendingMessage(null);
     setNotification(null);
+    setToastDismissed(false);
   }, [pendingItems]);
 
   const removeItem = useCallback((id: string) => {
@@ -318,8 +326,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const purchase = useCallback(() => {
     setItems([]);
     setPendingItems([]);
+    setPendingMessage(null);
     setSelectedRecipes([]);
     setNotification(null);
+    setToastDismissed(false);
   }, []);
 
   const dismissNotification = useCallback(() => {
@@ -333,11 +343,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         selectedRecipes,
         notification,
         hasPendingPrediction: pendingItems.length > 0,
+        toastDismissed,
+        pendingMessage,
         predictBasket,
         confirmBasket,
         removeItem,
         purchase,
         dismissNotification,
+        setToastDismissed,
       }}
     >
       {children}

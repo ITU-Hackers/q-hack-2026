@@ -11,7 +11,7 @@ import {
 } from "@workspace/ui/components/carousel";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { useCart } from "../cart-context";
 
@@ -277,13 +277,14 @@ export default function BrowsePage() {
     notification,
     items,
     hasPendingPrediction,
+    toastDismissed,
+    pendingMessage,
     predictBasket,
     confirmBasket,
     dismissNotification,
+    setToastDismissed,
   } = useCart();
   const router = useRouter();
-  const [toastDismissed, setToastDismissed] = useState(false);
-  const lastNotification = useRef<string | null>(null);
 
   useEffect(() => {
     if (items.length === 0 && !notification && !hasPendingPrediction) {
@@ -294,29 +295,25 @@ export default function BrowsePage() {
 
   useEffect(() => {
     if (notification) {
-      lastNotification.current = notification;
       dismissNotification();
-      setToastDismissed(false);
       showPickyToast(
         notification,
         () => {
           confirmBasket();
-          setToastDismissed(false);
           router.push("/cart");
         },
         () => setToastDismissed(true),
       );
     }
-  }, [notification, dismissNotification, confirmBasket, router]);
+  }, [notification, dismissNotification, confirmBasket, setToastDismissed, router]);
 
   const reopenToast = () => {
-    if (lastNotification.current) {
+    if (pendingMessage) {
       setToastDismissed(false);
       showPickyToast(
-        lastNotification.current,
+        pendingMessage,
         () => {
           confirmBasket();
-          setToastDismissed(false);
           router.push("/cart");
         },
         () => setToastDismissed(true),
