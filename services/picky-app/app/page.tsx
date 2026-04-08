@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import {
     Card,
     CardHeader,
@@ -33,9 +34,16 @@ import {
     IconCat,
     IconPlus,
     IconMinus,
+    IconClock,
+    IconWallet,
+    IconSparkles,
 } from "@tabler/icons-react"
 
-const TOTAL_STEPS = 4
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const TOTAL_STEPS = 5
 
 const CUISINES = [
     "Asian",
@@ -68,29 +76,85 @@ const HEALTH_GOALS = [
     {
         id: "high-protein",
         label: "High Protein",
-        description: "Focus on protein-rich meals for muscle building and recovery",
+        description: "Fuel your muscles with protein-packed meals",
     },
     {
         id: "keto",
         label: "Keto",
-        description: "Very low carb, high fat diet for ketosis",
+        description: "Low carb, high fat for sustained energy",
     },
     {
         id: "low-carb",
         label: "Low Carb",
-        description: "Reduced carbohydrate intake while maintaining balance",
+        description: "Lighter on carbs while staying balanced",
     },
     {
         id: "balanced",
         label: "Balanced",
-        description: "Well-rounded meals with all macronutrient groups",
+        description: "A bit of everything, perfectly portioned",
     },
     {
         id: "mediterranean",
         label: "Mediterranean",
-        description: "Heart-healthy eating inspired by Mediterranean cuisine",
+        description: "Heart-healthy and full of flavour",
     },
 ]
+
+const COOKING_TIMES = [
+    {
+        id: "quick",
+        label: "Quick",
+        description: "Under 20 min",
+        icon: "🚀",
+    },
+    {
+        id: "moderate",
+        label: "Moderate",
+        description: "20–40 min",
+        icon: "🍳",
+    },
+    {
+        id: "enthusiast",
+        label: "Enthusiast",
+        description: "Over 40 min",
+        icon: "👨‍🍳",
+    },
+]
+
+// Base budget per person per week (€). Scales with adults + 0.5×kids.
+const BUDGET_BASE = { tight: 25, moderate: 50, flexible: 75 }
+
+function budgetTiers(adults: number, kids: number) {
+    const heads = adults + kids * 0.5
+    const fmt = (v: number) => `€${Math.round(v)}/wk`
+    const tight = Math.round(BUDGET_BASE.tight * heads)
+    const moderate = Math.round(BUDGET_BASE.moderate * heads)
+    const flexible = Math.round(BUDGET_BASE.flexible * heads)
+    return [
+        {
+            id: "tight",
+            label: "Tight",
+            description: `Under ${fmt(tight)}`,
+            icon: "🪙",
+        },
+        {
+            id: "moderate",
+            label: "Moderate",
+            description: `${fmt(tight)}–${fmt(moderate)}`,
+            icon: "💶",
+        },
+        {
+            id: "flexible",
+            label: "Flexible",
+            description: `Over ${fmt(flexible)}`,
+            icon: "✨",
+        },
+    ]
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function preferenceLabel(value: number) {
     if (value <= -75) return "Hate it"
@@ -106,6 +170,10 @@ function preferenceColor(value: number) {
     return "text-muted-foreground"
 }
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 interface OnboardingData {
     email: string
     password: string
@@ -117,6 +185,21 @@ interface OnboardingData {
     preferences: Record<string, number>
     restrictions: string[]
     healthGoal: string
+    cookingTime: string
+    budget: string
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function StepHint({ children }: { children: React.ReactNode }) {
+    return (
+        <p className="flex items-start gap-2 rounded-lg bg-secondary/10 p-3 text-xs leading-relaxed text-secondary">
+            <IconSparkles className="mt-0.5 size-3.5 shrink-0" />
+            {children}
+        </p>
+    )
 }
 
 function CounterRow({
@@ -185,7 +268,7 @@ function HouseholdPortrait({
     }
 
     return (
-        <div className="flex min-h-28 flex-wrap items-end justify-center gap-1 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4">
+        <div className="flex min-h-28 flex-wrap items-end justify-center gap-1 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4 transition-all">
             {/* Dogs on the left */}
             {Array.from({ length: dogs }, (_, i) => (
                 <div
@@ -204,18 +287,12 @@ function HouseholdPortrait({
                 const leftAdults = Math.ceil(adults / 2)
                 const rightAdults = adults - leftAdults
 
-                // Left half of adults
-                for (let i = 0; i < leftAdults; i++) {
+                for (let i = 0; i < leftAdults; i++)
                     people.push({ type: "adult", index: i })
-                }
-                // All kids in the middle
-                for (let i = 0; i < kids; i++) {
+                for (let i = 0; i < kids; i++)
                     people.push({ type: "kid", index: i })
-                }
-                // Right half of adults
-                for (let i = 0; i < rightAdults; i++) {
+                for (let i = 0; i < rightAdults; i++)
                     people.push({ type: "adult", index: leftAdults + i })
-                }
 
                 return people.map((p) =>
                     p.type === "adult" ? (
@@ -232,7 +309,7 @@ function HouseholdPortrait({
                         >
                             <IconBabyCarriage className="size-6 text-secondary" />
                         </div>
-                    )
+                    ),
                 )
             })()}
 
@@ -251,6 +328,10 @@ function HouseholdPortrait({
     )
 }
 
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
 export default function Page() {
     const [step, setStep] = useState(0)
     const [data, setData] = useState<OnboardingData>({
@@ -261,19 +342,22 @@ export default function Page() {
         dogs: 0,
         cats: 0,
         cuisines: [],
-        preferences: {
-            fish: 0,
-            pork: 0,
-            beef: 0,
-            dairy: 0,
-            spicy: 0,
-        },
+        preferences: { fish: 0, pork: 0, beef: 0, dairy: 0, spicy: 0 },
         restrictions: [],
         healthGoal: "balanced",
+        cookingTime: "moderate",
+        budget: "moderate",
     })
 
     function next() {
-        setStep((s) => s + 1)
+        setStep((s) => {
+            const nextStep = s + 1
+            if (nextStep === TOTAL_STEPS + 1) {
+                console.log("--- Picky onboarding data ---")
+                console.log(JSON.stringify(data, null, 2))
+            }
+            return nextStep
+        })
     }
 
     function back() {
@@ -302,15 +386,19 @@ export default function Page() {
         return item.restrictedBy.some((r) => data.restrictions.includes(r))
     }
 
+    // -----------------------------------------------------------------------
     // Step 0: Login
+    // -----------------------------------------------------------------------
     if (step === 0) {
         return (
             <div className="flex min-h-svh items-center justify-center bg-background p-4">
-                <Card className="w-full max-w-sm">
-                    <CardHeader>
-                        <CardTitle className="text-xl">Welcome to Picky</CardTitle>
+                <Card className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-2xl">Welcome to Picky</CardTitle>
                         <CardDescription>
-                            Sign in to start planning your meals
+                            Your personal meal planner, powered by Picnic.
+                            <br />
+                            Fresh ideas, delivered to your door.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
@@ -339,35 +427,46 @@ export default function Page() {
                             />
                         </div>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="flex flex-col gap-3">
                         <Button className="w-full" onClick={next}>
                             Sign In
                         </Button>
+                        <p className="text-center text-xs text-muted-foreground">
+                            Next we&apos;ll ask a few quick questions to personalise your
+                            shopping and meal planning experience.
+                        </p>
                     </CardFooter>
                 </Card>
             </div>
         )
     }
 
-    // Done step
+    // -----------------------------------------------------------------------
+    // Done — log data and redirect
+    // -----------------------------------------------------------------------
     if (step === TOTAL_STEPS + 1) {
         return (
             <div className="flex min-h-svh items-center justify-center bg-background p-4">
-                <Card className="w-full max-w-md text-center">
-                    <CardHeader>
-                        <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-secondary/20">
-                            <IconCheck className="size-6 text-secondary" />
+                <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
+                    <CardHeader className="text-center">
+                        <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full bg-secondary/20 animate-in zoom-in duration-500">
+                            <IconCheck className="size-7 text-secondary" />
                         </div>
-                        <CardTitle className="text-xl">You&apos;re all set!</CardTitle>
+                        <CardTitle className="text-xl">
+                            Thanks for setting up Picky!
+                        </CardTitle>
                         <CardDescription>
-                            We&apos;ve saved your preferences. Your personalized meal plans
-                            are being prepared.
+                            We&apos;re using your answers to build a personalised meal plan
+                            and shopping list that fits your household, budget, and taste.
+                            You can always update these in settings.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="rounded-lg border border-border bg-muted/50 p-4 text-left text-sm">
-                            <p className="mb-2 font-medium text-foreground">Your profile:</p>
-                            <ul className="flex flex-col gap-1 text-muted-foreground">
+                            <p className="mb-2 font-medium text-foreground">
+                                Your profile at a glance:
+                            </p>
+                            <ul className="flex flex-col gap-1.5 text-muted-foreground">
                                 <li>
                                     {data.adults} adult{data.adults !== 1 ? "s" : ""}
                                     {data.kids > 0 &&
@@ -386,11 +485,18 @@ export default function Page() {
                                         {data.restrictions
                                             .map(
                                                 (r) =>
-                                                    HARD_RESTRICTIONS.find((hr) => hr.id === r)?.label
+                                                    HARD_RESTRICTIONS.find((hr) => hr.id === r)
+                                                        ?.label,
                                             )
                                             .join(", ")}
                                     </li>
                                 )}
+                                <li>
+                                    Cooking:{" "}
+                                    {COOKING_TIMES.find((c) => c.id === data.cookingTime)
+                                        ?.label ?? data.cookingTime}{" "}
+                                    &middot; Budget: {data.budget}
+                                </li>
                                 <li>
                                     Goal:{" "}
                                     {HEALTH_GOALS.find((g) => g.id === data.healthGoal)?.label}
@@ -398,9 +504,13 @@ export default function Page() {
                             </ul>
                         </div>
                     </CardContent>
-                    <CardFooter className="justify-center">
-                        <Button onClick={() => setStep(0)} variant="outline">
+                    <CardFooter className="flex justify-center gap-3">
+                        <Button variant="outline" onClick={() => setStep(0)}>
                             Start Over
+                        </Button>
+                        <Button nativeButton={false} render={<Link href="/browse" />}>
+                            Browse Recipes
+                            <IconArrowRight className="size-4" />
                         </Button>
                     </CardFooter>
                 </Card>
@@ -408,28 +518,26 @@ export default function Page() {
         )
     }
 
-    // Steps 1–5: Wizard
+    // -----------------------------------------------------------------------
+    // Wizard steps 1–5
+    // -----------------------------------------------------------------------
     const progressValue = (step / TOTAL_STEPS) * 100
 
     const stepIcons = [
         <IconUsers key="users" className="size-4" />,
         <IconToolsKitchen2 key="kitchen" className="size-4" />,
         <IconSalad key="salad" className="size-4" />,
+        <IconClock key="clock" className="size-4" />,
         <IconHeartbeat key="heart" className="size-4" />,
     ]
 
-    const stepLabels = [
-        "Household",
-        "Cuisines",
-        "Dietary",
-        "Health Goals",
-    ]
+    const stepLabels = ["Household", "Cuisines", "Dietary", "Lifestyle", "Goals"]
 
     return (
         <div className="flex min-h-svh items-center justify-center bg-background p-4">
             <div className="flex w-full max-w-lg flex-col gap-6">
                 {/* Progress */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 animate-in fade-in duration-300">
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>
                             Step {step} of {TOTAL_STEPS}
@@ -441,18 +549,20 @@ export default function Page() {
                         {stepLabels.map((label, i) => (
                             <div
                                 key={label}
-                                className={`flex items-center gap-1.5 text-xs ${i + 1 <= step
-                                    ? "font-medium text-primary"
-                                    : "text-muted-foreground"
-                                    }`}
+                                className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${
+                                    i + 1 <= step
+                                        ? "font-medium text-primary"
+                                        : "text-muted-foreground"
+                                }`}
                             >
                                 <div
-                                    className={`flex size-6 items-center justify-center rounded-full text-xs ${i + 1 < step
-                                        ? "bg-primary text-primary-foreground"
-                                        : i + 1 === step
-                                            ? "border-2 border-primary text-primary"
-                                            : "border border-border text-muted-foreground"
-                                        }`}
+                                    className={`flex size-6 items-center justify-center rounded-full text-xs transition-all duration-300 ${
+                                        i + 1 < step
+                                            ? "bg-primary text-primary-foreground"
+                                            : i + 1 === step
+                                              ? "border-2 border-primary text-primary"
+                                              : "border border-border text-muted-foreground"
+                                    }`}
                                 >
                                     {i + 1 < step ? (
                                         <IconCheck className="size-3" />
@@ -466,16 +576,21 @@ export default function Page() {
                     </div>
                 </div>
 
-                {/* Step Content */}
-                <Card>
+                {/* Step content */}
+                <Card
+                    key={step}
+                    className="animate-in fade-in slide-in-from-right-4 duration-300"
+                >
+                    {/* --------------------------------------------------------- */}
                     {/* Step 1: Household */}
+                    {/* --------------------------------------------------------- */}
                     {step === 1 && (
                         <>
                             <CardHeader>
-                                <CardTitle>Household Profile</CardTitle>
+                                <CardTitle>Who&apos;s at home?</CardTitle>
                                 <CardDescription>
-                                    Tell us about your household so we can tailor portion sizes and
-                                    ingredient safety.
+                                    This helps us get portion sizes right and suggest meals
+                                    everyone will enjoy.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-5">
@@ -484,26 +599,34 @@ export default function Page() {
                                         label="Adults"
                                         icon={<IconUser className="size-5" />}
                                         value={data.adults}
-                                        onChange={(v) => setData((d) => ({ ...d, adults: v }))}
+                                        onChange={(v) =>
+                                            setData((d) => ({ ...d, adults: v }))
+                                        }
                                         min={1}
                                     />
                                     <CounterRow
                                         label="Kids"
                                         icon={<IconBabyCarriage className="size-5" />}
                                         value={data.kids}
-                                        onChange={(v) => setData((d) => ({ ...d, kids: v }))}
+                                        onChange={(v) =>
+                                            setData((d) => ({ ...d, kids: v }))
+                                        }
                                     />
                                     <CounterRow
                                         label="Dogs"
                                         icon={<IconDog className="size-5" />}
                                         value={data.dogs}
-                                        onChange={(v) => setData((d) => ({ ...d, dogs: v }))}
+                                        onChange={(v) =>
+                                            setData((d) => ({ ...d, dogs: v }))
+                                        }
                                     />
                                     <CounterRow
                                         label="Cats"
                                         icon={<IconCat className="size-5" />}
                                         value={data.cats}
-                                        onChange={(v) => setData((d) => ({ ...d, cats: v }))}
+                                        onChange={(v) =>
+                                            setData((d) => ({ ...d, cats: v }))
+                                        }
                                     />
                                 </div>
 
@@ -517,83 +640,101 @@ export default function Page() {
                                 />
 
                                 {(data.dogs > 0 || data.cats > 0) && (
-                                    <p className="text-xs text-muted-foreground">
-                                        We&apos;ll flag recipes with ingredients that can be harmful
-                                        to your pets.
-                                    </p>
+                                    <StepHint>
+                                        Good to know! We&apos;ll add pet-friendly snack ideas
+                                        to your weekly plan.
+                                    </StepHint>
                                 )}
                             </CardContent>
                         </>
                     )}
 
+                    {/* --------------------------------------------------------- */}
                     {/* Step 2: Cuisines */}
+                    {/* --------------------------------------------------------- */}
                     {step === 2 && (
                         <>
                             <CardHeader>
-                                <CardTitle>Cuisine Preferences</CardTitle>
+                                <CardTitle>What flavours excite you?</CardTitle>
                                 <CardDescription>
-                                    Select the cuisines your household enjoys. Pick as many as you
-                                    like.
+                                    Pick the cuisines your household loves so we can fill your
+                                    weekly plan with meals you&apos;ll actually look forward to.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            <CardContent className="flex flex-col gap-5">
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                                     {CUISINES.map((cuisine) => {
                                         const selected = data.cuisines.includes(cuisine)
                                         return (
                                             <Button
                                                 key={cuisine}
                                                 variant="outline"
-                                                className={`h-auto justify-start px-4 py-3 text-left ${selected
-                                                    ? "border-primary bg-primary/10 text-primary"
-                                                    : ""
-                                                    }`}
+                                                className={`h-auto justify-center px-3 py-3 transition-all duration-200 ${
+                                                    selected
+                                                        ? "border-primary bg-primary/10 text-primary scale-[1.03]"
+                                                        : "hover:scale-[1.02]"
+                                                }`}
                                                 onClick={() => toggleCuisine(cuisine)}
                                             >
-                                                {selected && <IconCheck className="mr-1.5 size-4" />}
+                                                {selected && (
+                                                    <IconCheck className="mr-1.5 size-4" />
+                                                )}
                                                 {cuisine}
                                             </Button>
                                         )
                                     })}
                                 </div>
                                 {data.cuisines.length > 0 && (
-                                    <p className="mt-4 text-sm text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground animate-in fade-in">
                                         {data.cuisines.length} cuisine
                                         {data.cuisines.length !== 1 ? "s" : ""} selected
                                     </p>
                                 )}
+                                <StepHint>
+                                    We use this to match recipes and highlight relevant
+                                    ingredients in your Picnic basket.
+                                </StepHint>
                             </CardContent>
                         </>
                     )}
 
-                    {/* Step 3: Dietary (restrictions + preferences combined) */}
+                    {/* --------------------------------------------------------- */}
+                    {/* Step 3: Dietary */}
+                    {/* --------------------------------------------------------- */}
                     {step === 3 && (
                         <>
                             <CardHeader>
-                                <CardTitle>Dietary Preferences</CardTitle>
+                                <CardTitle>Any dietary needs?</CardTitle>
                                 <CardDescription>
-                                    Set any hard restrictions, then fine-tune how you feel about
-                                    specific ingredients.
+                                    Restrictions are strictly enforced&mdash;we&apos;ll never
+                                    suggest something that doesn&apos;t fit. Preferences help us
+                                    rank recipes so your favourites rise to the top.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-5">
-                                {/* Hard restrictions */}
+                                {/* Hard restrictions as toggle pills */}
                                 <div className="flex flex-wrap gap-2">
                                     {HARD_RESTRICTIONS.map((restriction) => {
-                                        const active = data.restrictions.includes(restriction.id)
+                                        const active = data.restrictions.includes(
+                                            restriction.id,
+                                        )
                                         return (
                                             <Button
                                                 key={restriction.id}
                                                 variant="outline"
                                                 size="sm"
-                                                className={`${
+                                                className={`transition-all duration-200 ${
                                                     active
-                                                        ? "border-primary bg-primary/10 text-primary"
-                                                        : ""
+                                                        ? "border-primary bg-primary/10 text-primary scale-[1.03]"
+                                                        : "hover:scale-[1.02]"
                                                 }`}
-                                                onClick={() => toggleRestriction(restriction.id)}
+                                                onClick={() =>
+                                                    toggleRestriction(restriction.id)
+                                                }
                                             >
-                                                {active && <IconCheck className="mr-1 size-3.5" />}
+                                                {active && (
+                                                    <IconCheck className="mr-1 size-3.5" />
+                                                )}
                                                 {restriction.label}
                                             </Button>
                                         )
@@ -616,7 +757,9 @@ export default function Page() {
                                     return (
                                         <div
                                             key={item.id}
-                                            className={`flex flex-col gap-2 transition-opacity ${restricted ? "opacity-30" : ""}`}
+                                            className={`flex flex-col gap-2 transition-opacity duration-300 ${
+                                                restricted ? "opacity-30" : ""
+                                            }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-medium">
@@ -628,9 +771,15 @@ export default function Page() {
                                                     )}
                                                 </span>
                                                 <span
-                                                    className={`text-xs ${restricted ? "text-muted-foreground" : preferenceColor(value)}`}
+                                                    className={`text-xs transition-colors ${
+                                                        restricted
+                                                            ? "text-muted-foreground"
+                                                            : preferenceColor(value)
+                                                    }`}
                                                 >
-                                                    {restricted ? "N/A" : preferenceLabel(value)}
+                                                    {restricted
+                                                        ? "N/A"
+                                                        : preferenceLabel(value)}
                                                 </span>
                                             </div>
                                             <Slider
@@ -641,7 +790,9 @@ export default function Page() {
                                                 disabled={restricted}
                                                 onValueChange={(v) => {
                                                     if (!restricted) {
-                                                        const newVal = Array.isArray(v) ? v[0] : v
+                                                        const newVal = Array.isArray(v)
+                                                            ? v[0]
+                                                            : v
                                                         setData((d) => ({
                                                             ...d,
                                                             preferences: {
@@ -655,36 +806,152 @@ export default function Page() {
                                         </div>
                                     )
                                 })}
+
+                                <StepHint>
+                                    This keeps your Picnic suggestions safe and tailored to
+                                    your taste buds.
+                                </StepHint>
                             </CardContent>
                         </>
                     )}
 
-                    {/* Step 4: Health Goals */}
+                    {/* --------------------------------------------------------- */}
+                    {/* Step 4: Cooking time + Budget */}
+                    {/* --------------------------------------------------------- */}
                     {step === 4 && (
                         <>
                             <CardHeader>
-                                <CardTitle>Health Goals</CardTitle>
+                                <CardTitle>Your kitchen reality</CardTitle>
                                 <CardDescription>
-                                    Choose an eating style that aligns with your health objectives.
+                                    Knowing your time and budget means we only suggest meals
+                                    that actually work for your week&mdash;no aspirational
+                                    recipes you&apos;ll never cook.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="flex flex-col gap-5">
+                                {/* Cooking time */}
+                                <div className="flex flex-col gap-3">
+                                    <Label className="flex items-center gap-2 text-sm">
+                                        <IconClock className="size-4 text-muted-foreground" />
+                                        How much time do you like spending on a meal?
+                                    </Label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {COOKING_TIMES.map((t) => {
+                                            const selected = data.cookingTime === t.id
+                                            return (
+                                                <Button
+                                                    key={t.id}
+                                                    variant="outline"
+                                                    className={`flex h-auto flex-col items-center gap-1 px-3 py-4 transition-all duration-200 ${
+                                                        selected
+                                                            ? "border-primary bg-primary/10 text-primary scale-[1.03]"
+                                                            : "hover:scale-[1.02]"
+                                                    }`}
+                                                    onClick={() =>
+                                                        setData((d) => ({
+                                                            ...d,
+                                                            cookingTime: t.id,
+                                                        }))
+                                                    }
+                                                >
+                                                    <span className="text-xl">{t.icon}</span>
+                                                    <span className="text-sm font-medium">
+                                                        {t.label}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {t.description}
+                                                    </span>
+                                                </Button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+
+                                <Separator />
+
+                                {/* Budget */}
+                                <div className="flex flex-col gap-3">
+                                    <Label className="flex items-center gap-2 text-sm">
+                                        <IconWallet className="size-4 text-muted-foreground" />
+                                        Weekly grocery budget
+                                    </Label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {budgetTiers(data.adults, data.kids).map((b) => {
+                                            const selected = data.budget === b.id
+                                            return (
+                                                <Button
+                                                    key={b.id}
+                                                    variant="outline"
+                                                    className={`flex h-auto flex-col items-center gap-1 px-3 py-4 transition-all duration-200 ${
+                                                        selected
+                                                            ? "border-primary bg-primary/10 text-primary scale-[1.03]"
+                                                            : "hover:scale-[1.02]"
+                                                    }`}
+                                                    onClick={() =>
+                                                        setData((d) => ({
+                                                            ...d,
+                                                            budget: b.id,
+                                                        }))
+                                                    }
+                                                >
+                                                    <span className="text-xl">{b.icon}</span>
+                                                    <span className="text-sm font-medium">
+                                                        {b.label}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {b.description}
+                                                    </span>
+                                                </Button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+
+                                <StepHint>
+                                    We use this to filter recipes by prep time and pick
+                                    ingredients that fit your weekly spend.
+                                </StepHint>
+                            </CardContent>
+                        </>
+                    )}
+
+                    {/* --------------------------------------------------------- */}
+                    {/* Step 5: Health Goals */}
+                    {/* --------------------------------------------------------- */}
+                    {step === 5 && (
+                        <>
+                            <CardHeader>
+                                <CardTitle>Any health goals?</CardTitle>
+                                <CardDescription>
+                                    This shapes the nutritional balance of your meal plans.
+                                    Pick what feels right&mdash;you can change it any time.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-col gap-5">
                                 <RadioGroup
                                     value={data.healthGoal}
                                     onValueChange={(value) =>
-                                        setData((d) => ({ ...d, healthGoal: value as string }))
+                                        setData((d) => ({
+                                            ...d,
+                                            healthGoal: value as string,
+                                        }))
                                     }
+                                    className="gap-3"
                                 >
                                     {HEALTH_GOALS.map((goal) => (
                                         <label
                                             key={goal.id}
-                                            className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${data.healthGoal === goal.id
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:bg-muted/50"
-                                                }`}
+                                            className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-all duration-200 ${
+                                                data.healthGoal === goal.id
+                                                    ? "border-primary bg-primary/5 scale-[1.01]"
+                                                    : "border-border hover:bg-muted/50"
+                                            }`}
                                         >
-                                            <RadioGroupItem value={goal.id} className="mt-0.5" />
-                                            <div className="flex flex-col gap-1">
+                                            <RadioGroupItem
+                                                value={goal.id}
+                                                className="mt-0.5"
+                                            />
+                                            <div className="flex flex-col gap-0.5">
                                                 <span className="text-sm font-medium">
                                                     {goal.label}
                                                 </span>
@@ -695,6 +962,11 @@ export default function Page() {
                                         </label>
                                     ))}
                                 </RadioGroup>
+
+                                <StepHint>
+                                    Almost there! This helps us balance macros across your
+                                    weekly plan.
+                                </StepHint>
                             </CardContent>
                         </>
                     )}
