@@ -2,7 +2,7 @@
   <h1>🛒 Picky</h1>
   <p><strong>AI-powered shopping agent for Picnic</strong></p>
   <p>
-    Built at <a href="https://qsummit.de">Q-Summit</a> · Mannheim University Hackathon
+    Q-Summit · Mannheim University Hackathon
   </p>
   <br />
 </div>
@@ -15,7 +15,7 @@
 
 Whether you're asking _"What can I cook tonight with what's on sale?"_ or _"Reorder my usual weekend essentials"_ — Picky has you covered.
 
-> Built in 24 hours at **Q Summit**, the innovation & entrepreneurship conference at the University of Mannheim.
+> Built in 24 hours at **Q-Summit**, the innovation & entrepreneurship conference at the University of Mannheim.
 
 ---
 
@@ -127,6 +127,6 @@ The web app will be available at [http://localhost:3000](http://localhost:3000).
 | Karl Theodor Ruby Schmidt     | <krub@itu.dk>  |
 | Lukas Shagashvili-Johannessen | <lush@itu.dk>  |
 
-Built with ❤️ at **Q Summit Hackathon** · University of Mannheim
+Built with ❤️ at **Q-Summit Hackathon** · University of Mannheim
 
 ---
