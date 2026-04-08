@@ -2,7 +2,7 @@
   <h1>🛒 Picky</h1>
   <p><strong>AI-powered shopping agent for Picnic</strong></p>
   <p>
-    Built at <a href="https://qsummit.de">Q Summit</a> · Mannheim University Hackathon
+    Built at <a href="https://qsummit.de">Q-Summit</a> · Mannheim University Hackathon
   </p>
   <br />
 </div>
@@ -118,6 +118,14 @@ The web app will be available at [http://localhost:3000](http://localhost:3000).
 ---
 
 ## Team
+
+| Name                          | Mail           |
+|-------------------------------|----------------|
+| Dara Georgieva                | <dage@itu.dk>  |
+| Johan Schmidt                 | <jhsc@itu.dk>  |
+| Kasper Jønsson                | <kasjo@itu.dk> |
+| Karl Theodor Ruby Schmidt     | <krub@itu.dk>  |
+| Lukas Shagashvili-Johannessen | <lush@itu.dk>  |
 
 Built with ❤️ at **Q Summit Hackathon** · University of Mannheim
 
