@@ -7,9 +7,9 @@
 use std::borrow::Cow;
 
 use axum::{
-    http::{request::Parts, StatusCode},
-    response::{IntoResponse, Response},
     Json,
+    http::{StatusCode, request::Parts},
+    response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -290,7 +290,7 @@ where
 ///   "type": "about:blank",
 ///   "title": "Unauthorized",
 ///   "detail": "You are not authorized to access this resource.",
-///   "instance": "/api/v1/chats",
+///   "instance": "/api/v1/me",
 ///   "log_id": "01948a62-f94e-7d36-b5ef-70a9b764b2e0"
 /// }
 /// ```
@@ -319,7 +319,7 @@ where
     ///
     /// Included when the server can identify the specific resource that caused
     /// the error. Omitted otherwise.
-    #[schema(nullable, example = "/api/v1/chats")]
+    #[schema(nullable, example = "/api/v1/me")]
     instance: Option<String>,
     /// Additional structured data specific to this error type.
     ///

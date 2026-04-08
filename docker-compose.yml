@@ -83,7 +83,7 @@ services:
     domainname: dagster.picky.local
     build:
       context: .
-      dockerfile: svc/dagster/Dockerfile
+      dockerfile: services/dagster/Dockerfile
     environment:
       - DAGSTER_POSTGRES_URL=postgresql://picky:Password123@postgres.picky.local:5432/dagster
     entrypoint:
@@ -123,7 +123,7 @@ services:
     hostname: dagster-daemon
     build:
       context: .
-      dockerfile: svc/dagster/Dockerfile
+      dockerfile: services/dagster/Dockerfile
     environment:
       - DAGSTER_POSTGRES_URL=postgresql://picky:Password123@postgres.picky.local:5432/dagster
     entrypoint:
@@ -144,7 +144,6 @@ volumes:
   qdrant_data:
   mongodb_data:
   dagster_storage:
-
 
 networks:
   picky-network:

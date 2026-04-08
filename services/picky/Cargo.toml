@@ -11,6 +11,7 @@ picky-utils = { workspace = true }
 rig-core = { workspace = true }
 rig-qdrant = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+tokio-stream = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 # Database
