@@ -68,6 +68,21 @@ Start everything with:
 docker compose up -d
 ```
 
+### First-time setup: seed the Qdrant recipe embeddings
+
+The Qdrant `recipes` collection is stored in a local Docker volume and is **not shared** — every team member must seed it once after starting the stack for the first time.
+
+After `docker compose up -d`, open the Dagster UI at **http://localhost:3009**, go to **Assets**, select both `recipe_collection` and `recipe_embeddings`, and click **Materialize**.
+
+Alternatively, run it from the CLI:
+
+```bash
+cd services/picky-recs
+uv run dagster asset materialize --select "recipe_collection,recipe_embeddings"
+```
+
+This requires Qdrant to be running (`docker compose up -d qdrant` at minimum) and the food2vec model to be present at `services/picky/models/food2vec.txt`.
+
 ## Commands
 
 ### Root (runs all workspaces via Turbo)
