@@ -64,10 +64,10 @@ function DishCard({ dish }: { dish: Dish }) {
 
 function DishRow({ title, dishes }: { title: string; dishes: Dish[] }) {
   return (
-    <section className="px-16">
+    <section className="px-8 sm:px-16">
       <h2 className="mb-4 text-xl font-semibold text-foreground">{title}</h2>
       <Carousel opts={{ align: "center", dragFree: true, loop: true }}>
-        <CarouselContent viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <CarouselContent viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
           {dishes.map((dish) => (
             <CarouselItem key={dish.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
               <DishCard dish={dish} />
@@ -84,8 +84,8 @@ function DishRow({ title, dishes }: { title: string; dishes: Dish[] }) {
 export default function BrowsePage() {
   return (
     <div className="min-h-screen bg-background py-10">
-      <header className="mb-10 px-16">
-        <h1 className="text-3xl font-bold text-primary">Browser Dishes</h1>
+      <header className="mb-10 px-8 sm:px-16">
+        <h1 className="text-3xl font-bold text-primary">Browse Dishes</h1>
       </header>
 
       <div className="flex flex-col gap-16">
