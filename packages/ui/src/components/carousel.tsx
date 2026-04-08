@@ -176,7 +176,7 @@ function CarouselContent({
   return (
     <div
       ref={setRefs}
-      className={cn("overflow-hidden [touch-action:pan-y]", viewportClassName)}
+      className={cn("overflow-x-clip [touch-action:pan-y]", viewportClassName)}
       data-slot="carousel-content"
     >
       <div

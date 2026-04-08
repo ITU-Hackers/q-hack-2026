@@ -67,7 +67,7 @@ function DishRow({ title, dishes }: { title: string; dishes: Dish[] }) {
     <section className="px-8 sm:px-16">
       <h2 className="mb-4 text-xl font-semibold text-foreground">{title}</h2>
       <Carousel opts={{ align: "center", dragFree: true, loop: true }}>
-        <CarouselContent viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+        <CarouselContent className="py-2" viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
           {dishes.map((dish) => (
             <CarouselItem key={dish.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
               <DishCard dish={dish} />
