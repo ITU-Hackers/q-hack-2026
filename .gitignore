@@ -37,3 +37,9 @@ npm-debug.log*
 
 # Rust
 target
+
+# Python / UV
+.venv
+__pycache__
+*.pyc
+*.egg-info

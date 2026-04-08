@@ -1,0 +1,18 @@
+[project]
+name = "picky"
+version = "0.1.0"
+description = "Picky monorepo — Python workspace root"
+requires-python = ">=3.12,<3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "pytest",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/picky-recs"]

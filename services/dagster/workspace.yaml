@@ -1,4 +1,8 @@
 # Dagster workspace configuration.
 # Add code locations here as you build out pipelines and assets.
 # See: https://docs.dagster.io/concepts/code-locations/workspace-files
-load_from: []
+load_from:
+  - grpc_server:
+      host: picky-recs
+      port: 4000
+      location_name: picky-recs

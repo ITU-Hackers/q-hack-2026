@@ -1,0 +1,32 @@
+[project]
+name = "picky-recs"
+version = "0.1.0"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "dagster",
+    "dagster-aws",
+    "dagster-postgres",
+    "boto3",
+    "scikit-learn",
+    "pandas",
+    "numpy",
+    "skl2onnx",
+]
+
+[dependency-groups]
+dev = [
+    "dagster-webserver",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["picky_recs"]
+
+[tool.dg]
+directory_type = "project"
+
+[tool.dg.project]
+root_module = "picky_recs"

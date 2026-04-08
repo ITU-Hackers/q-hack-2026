@@ -15,7 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+      - ./scripts/init_database.sh:/docker-entrypoint-initdb.d/init_database.sh:ro
     networks:
       picky-network:
         aliases:
@@ -103,6 +103,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      picky-recs:
+        condition: service_healthy
     networks:
       picky-network:
         aliases:
@@ -142,6 +144,42 @@ services:
       timeout: 5s
       retries: 5
 
+  picky-recs:
+    container_name: picky-recs
+    restart: on-failure
+    hostname: picky-recs
+    domainname: picky-recs.picky.local
+    build:
+      context: .
+      dockerfile: services/picky-recs/Dockerfile
+    env_file:
+      - ./services/picky-recs/.env
+    volumes:
+      - ./services/picky-recs/picky_recs:/opt/dagster/app/services/picky-recs/picky_recs
+      - ./services/picky-recs/definitions.py:/opt/dagster/app/services/picky-recs/definitions.py
+    expose:
+      - "4000"
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      picky-network:
+        aliases:
+          - picky-recs.picky.local
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "uv run dagster api grpc-health-check -p 4000",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   dagster-daemon:
     container_name: dagster-daemon
     restart: on-failure
@@ -160,6 +198,8 @@ services:
       postgres:
         condition: service_healthy
       dagster-webserver:
+        condition: service_healthy
+      picky-recs:
         condition: service_healthy
     networks:
       - picky-network
