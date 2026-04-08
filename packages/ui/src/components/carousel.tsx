@@ -53,6 +53,7 @@ function Carousel({
 }: React.ComponentProps<"div"> & CarouselProps) {
   const [carouselRef, api] = useEmblaCarousel(
     {
+      align: "center",
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",
     },
@@ -132,13 +133,50 @@ function Carousel({
   )
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
-  const { carouselRef, orientation } = useCarousel()
+function CarouselContent({
+  className,
+  viewportClassName,
+  ...props
+}: React.ComponentProps<"div"> & { viewportClassName?: string }) {
+  const { carouselRef, orientation, scrollPrev, scrollNext } = useCarousel()
+  const viewportRef = React.useRef<HTMLDivElement | null>(null)
+  const wheelLocked = React.useRef(false)
+  const wheelTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const setRefs = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      viewportRef.current = node
+      carouselRef(node)
+    },
+    [carouselRef]
+  )
+
+  React.useEffect(() => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+
+    const handleWheel = (e: WheelEvent) => {
+      const isHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY)
+      if (!isHorizontal) return
+      e.preventDefault()
+      if (wheelLocked.current) return
+      wheelLocked.current = true
+      if (e.deltaX > 0) scrollNext()
+      else scrollPrev()
+      if (wheelTimer.current) clearTimeout(wheelTimer.current)
+      wheelTimer.current = setTimeout(() => {
+        wheelLocked.current = false
+      }, 300)
+    }
+
+    viewport.addEventListener("wheel", handleWheel, { passive: false })
+    return () => viewport.removeEventListener("wheel", handleWheel)
+  }, [scrollNext, scrollPrev])
 
   return (
     <div
-      ref={carouselRef}
-      className="overflow-hidden"
+      ref={setRefs}
+      className={cn("overflow-hidden [touch-action:pan-y]", viewportClassName)}
       data-slot="carousel-content"
     >
       <div
