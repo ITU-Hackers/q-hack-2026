@@ -129,6 +129,12 @@ The `scripts/generate_synthetic_users.py` script populates PostgreSQL with 300 s
 ### Generate the data
 
 ```sh
+python -m uv run --with psycopg2-binary python scripts/generate_synthetic_users.py \
+  --seed 42 \
+  --db-url "postgresql://picky:Password123@localhost:5432/primary" \
+  --clear-existing
+
+# If you have `uv` on your PATH, this also works:
 uv run --directory services/picky-recs python scripts/generate_synthetic_users.py \
   --seed 42 \
   --db-url "postgresql://picky:Password123@localhost:5432/primary" \
@@ -168,6 +174,12 @@ Four tables are created in the `primary` database:
 To wipe all synthetic data and start fresh:
 
 ```sh
+python -m uv run --with psycopg2-binary python scripts/generate_synthetic_users.py \
+  --seed 42 \
+  --db-url "postgresql://picky:Password123@localhost:5432/primary" \
+  --clear-existing
+
+# If you have `uv` on your PATH, this also works:
 uv run --directory services/picky-recs python scripts/generate_synthetic_users.py \
   --seed 42 \
   --db-url "postgresql://picky:Password123@localhost:5432/primary" \
@@ -195,6 +207,48 @@ df = pd.read_sql("""
 ```
 
 Key feature columns: `loyalty_staples_fraction`, `spend_trend`, `budget_util_rate`, `order_interval_consistency`, `protein_fraction`, `dairy_fraction`, `carbs_fraction`, `vegetables_fraction`, `snacks_fraction`, `pantry_depletion` (JSONB).
+
+---
+
+## Customer Vectors (128-dim)
+
+The `scripts/generate_customer_vectors.py` script derives **one fixed-size 128-dimensional vector per user** from the existing synthetic tables and stores it in PostgreSQL.
+
+It writes to:
+
+- `user_profile_vectors` (one row per `synthetic_users.id`)
+- `vector` is stored as `FLOAT8[]`
+
+### Generate customer vectors
+
+```sh
+python -m uv run --with psycopg2-binary python scripts/generate_customer_vectors.py \
+  --db-url "postgresql://picky:Password123@localhost:5432/primary"
+```
+
+Optional flags:
+
+- `--clear-existing` drops and recreates the `user_profile_vectors` table first
+- `--dry-run` computes vectors but skips DB writes
+
+---
+
+## Connect with DBeaver (PostgreSQL)
+
+To inspect the generated data locally in DBeaver, create a new PostgreSQL connection with:
+
+- **Host:** `localhost`
+- **Port:** `5432`
+- **Database:** `primary`
+- **Username:** `picky`
+- **Password:** `Password123`
+- **SSL:** disabled / prefer (default) unless you configured it otherwise
+
+If the connection fails, ensure infrastructure is running:
+
+```sh
+docker compose up -d
+```
 
 ---
 
