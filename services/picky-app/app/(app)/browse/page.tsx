@@ -232,15 +232,15 @@ function showPickyToast(
   toast.dismiss();
   toast.custom(
     (id) => (
-      <div className="relative mx-2 flex w-[min(460px,92vw)] items-end">
+      <div className="relative mx-auto w-[min(320px,80vw)]">
         <Image
           src="/picky-mascot.png"
           alt="Picky"
           width={96}
           height={96}
-          className="relative z-10 -mr-2 -mb-1 shrink-0 drop-shadow-lg"
+          className="absolute -bottom-1 -left-14 z-10 drop-shadow-lg"
         />
-        <div className="relative flex flex-1 flex-col gap-2 rounded-xl border border-border bg-background p-3 shadow-lg">
+        <div className="relative flex flex-col items-center gap-2 rounded-xl border border-border bg-background p-3 text-center shadow-lg">
           <button
             type="button"
             className="absolute top-2 right-2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
@@ -251,7 +251,7 @@ function showPickyToast(
           >
             <IconX className="size-3.5" />
           </button>
-          <p className="pr-5 text-base font-medium leading-snug text-foreground">
+          <p className="px-4 text-base font-medium leading-snug text-foreground">
             {msg}
           </p>
           <Button
