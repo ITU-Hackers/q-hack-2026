@@ -572,9 +572,9 @@ def compute_metrics(user: User, orders: list[Order]) -> list[WeeklyMetrics]:
             cat_spend: dict[str, float] = defaultdict(float)
             for it in order.items:
                 cat_spend[it.category] += it.unit_price_cents * it.quantity
-            fractions = {cat: round(cat_spend[cat] / max(total_item_value, 1), 4) for cat in CATEGORIES}
+            fractions = {f"{cat}_fraction": round(cat_spend[cat] / max(total_item_value, 1), 4) for cat in CATEGORIES}
         else:
-            fractions = {cat: 0.0 for cat in CATEGORIES}
+            fractions = {f"{cat}_fraction": 0.0 for cat in CATEGORIES}
 
         top_cat_conc = round(max(fractions.values()), 4)
 
@@ -874,7 +874,7 @@ def validate_and_print(conn) -> None:
         # Category fractions by archetype
         print("\nAvg protein fraction in weekly metrics by archetype:")
         cur.execute("""
-            SELECT u.archetype, ROUND(AVG(m.protein_fraction) * 100, 1) AS pct
+            SELECT u.archetype, ROUND((AVG(m.protein_fraction) * 100)::numeric, 1) AS pct
             FROM user_weekly_metrics m
             JOIN synthetic_users u ON u.id = m.user_id
             WHERE m.weekly_spend_cents > 0
