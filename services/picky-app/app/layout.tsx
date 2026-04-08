@@ -3,7 +3,7 @@ import { Geist_Mono, Inter } from "next/font/google";
 
 import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
-import { UserProvider } from "@/lib/user-context";
+import { UserProvider } from "@/components/user-context";
 
 export const metadata: Metadata = {
   title: "Picky",

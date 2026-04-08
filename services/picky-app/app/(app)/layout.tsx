@@ -10,7 +10,7 @@ import { Toaster } from "@workspace/ui/components/sonner";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useUser } from "@/lib/user-context";
+import { useUser } from "@/components/user-context";
 import { CartProvider, useCart } from "./cart-context";
 
 const tabs = [

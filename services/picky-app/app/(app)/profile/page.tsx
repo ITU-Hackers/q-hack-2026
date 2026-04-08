@@ -15,8 +15,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Separator } from "@workspace/ui/components/separator";
-import { useRouter } from "next/router";
-import { useUser } from "@/lib/user-context";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/components/user-context";
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);

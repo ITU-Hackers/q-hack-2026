@@ -11,7 +11,7 @@ use super::model::{CreateProfile, Profile, ProfileRow};
 
 #[utoipa::path(
     post,
-    path = "/",
+    path = "/create",
     tag = PROFILE_TAG,
     summary = "Create a new profile",
     description = "Create a new user profile with household info, cuisine preferences, dietary restrictions, and more.",

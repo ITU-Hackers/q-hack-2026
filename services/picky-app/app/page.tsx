@@ -39,12 +39,8 @@ import { Slider } from "@workspace/ui/components/slider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useUser } from "@/components/user-context";
 import { ApiError, createProfile, loginProfile } from "@/lib/api";
-import { useUser } from "@/lib/user-context";
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
 
 const TOTAL_STEPS = 5;
 
@@ -159,10 +155,6 @@ function budgetTiers(adults: number, kids: number) {
   ];
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function preferenceLabel(value: number) {
   if (value <= -75) return "Hate it";
   if (value <= -25) return "Dislike";
@@ -176,10 +168,6 @@ function preferenceColor(value: number) {
   if (value >= 25) return "text-secondary";
   return "text-muted-foreground";
 }
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface OnboardingData {
   email: string;
@@ -195,10 +183,6 @@ interface OnboardingData {
   cookingTime: string;
   budget: string;
 }
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
 
 function StepHint({ children }: { children: React.ReactNode }) {
   return (
@@ -334,10 +318,6 @@ function HouseholdPortrait({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export default function Page() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
@@ -363,7 +343,6 @@ export default function Page() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  // Redirect to the app if the user is already logged in.
   useEffect(() => {
     if (mounted && user) {
       router.replace("/browse");
@@ -466,9 +445,6 @@ export default function Page() {
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Step 0: Login
-  // -----------------------------------------------------------------------
   if (step === 0) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-background p-4">
@@ -481,6 +457,7 @@ export default function Page() {
               Fresh ideas, delivered to your door.
             </CardDescription>
           </CardHeader>
+          <form className="contents" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
@@ -509,28 +486,28 @@ export default function Page() {
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             {loginError && (
-              <p className="text-center text-sm text-destructive">{loginError}</p>
+              <p className="text-center text-sm text-destructive">
+                {loginError}
+              </p>
             )}
             <Button
+              type="submit"
               className="w-full"
-              onClick={handleLogin}
               disabled={isLoginLoading || !data.email || !data.password}
             >
               {isLoginLoading ? "Signing in…" : "Sign In"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              No account yet? Enter your email and a password and we&apos;ll
-              set one up for you.
+              No account yet? Enter your email and a password and we&apos;ll set
+              one up for you.
             </p>
           </CardFooter>
+          </form>
         </Card>
       </div>
     );
   }
 
-  // -----------------------------------------------------------------------
-  // Done — log data and redirect
-  // -----------------------------------------------------------------------
   if (step === TOTAL_STEPS + 1) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-background p-4">
@@ -604,9 +581,6 @@ export default function Page() {
     );
   }
 
-  // -----------------------------------------------------------------------
-  // Wizard steps 1–5
-  // -----------------------------------------------------------------------
   const progressValue = (step / TOTAL_STEPS) * 100;
 
   const stepIcons = [
@@ -622,7 +596,6 @@ export default function Page() {
   return (
     <div className="flex min-h-svh items-center justify-center bg-background p-4">
       <div className="flex w-full max-w-lg flex-col gap-6">
-        {/* Progress */}
         <div className="flex flex-col gap-3 animate-in fade-in duration-300">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
@@ -662,14 +635,10 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Step content */}
         <Card
           key={step}
           className="animate-in fade-in slide-in-from-right-4 duration-300"
         >
-          {/* --------------------------------------------------------- */}
-          {/* Step 1: Household */}
-          {/* --------------------------------------------------------- */}
           {step === 1 && (
             <>
               <CardHeader>
@@ -727,9 +696,6 @@ export default function Page() {
             </>
           )}
 
-          {/* --------------------------------------------------------- */}
-          {/* Step 2: Cuisines */}
-          {/* --------------------------------------------------------- */}
           {step === 2 && (
             <>
               <CardHeader>
@@ -749,8 +715,8 @@ export default function Page() {
                         variant="outline"
                         className={`h-auto justify-center px-3 py-3 transition-all duration-200 ${
                           selected
-                            ? "border-primary bg-primary/10 text-primary scale-[1.03]"
-                            : "hover:scale-[1.02]"
+                            ? "border-primary bg-primary/10 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary scale-[1.03]"
+                            : "hover:border-primary hover:bg-primary/10 hover:text-primary hover:scale-[1.02]"
                         }`}
                         onClick={() => toggleCuisine(cuisine)}
                       >
@@ -774,9 +740,6 @@ export default function Page() {
             </>
           )}
 
-          {/* --------------------------------------------------------- */}
-          {/* Step 3: Dietary */}
-          {/* --------------------------------------------------------- */}
           {step === 3 && (
             <>
               <CardHeader>
@@ -788,7 +751,6 @@ export default function Page() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
-                {/* Hard restrictions as toggle pills */}
                 <div className="flex flex-wrap gap-2">
                   {HARD_RESTRICTIONS.map((restriction) => {
                     const active = data.restrictions.includes(restriction.id);
@@ -799,8 +761,8 @@ export default function Page() {
                         size="sm"
                         className={`transition-all duration-200 ${
                           active
-                            ? "border-primary bg-primary/10 text-primary scale-[1.03]"
-                            : "hover:scale-[1.02]"
+                            ? "border-primary bg-primary/10 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary scale-[1.03]"
+                            : "hover:border-primary hover:bg-primary/10 hover:text-primary hover:scale-[1.02]"
                         }`}
                         onClick={() => toggleRestriction(restriction.id)}
                       >
@@ -813,7 +775,6 @@ export default function Page() {
 
                 <Separator />
 
-                {/* Scale legend */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="text-destructive">Hate it</span>
                   <span>No opinion</span>
@@ -881,9 +842,6 @@ export default function Page() {
             </>
           )}
 
-          {/* --------------------------------------------------------- */}
-          {/* Step 4: Cooking time + Budget */}
-          {/* --------------------------------------------------------- */}
           {step === 4 && (
             <>
               <CardHeader>
@@ -895,7 +853,6 @@ export default function Page() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
-                {/* Cooking time */}
                 <div className="flex flex-col gap-3">
                   <Label className="flex items-center gap-2 text-sm">
                     <IconClock className="size-4 text-muted-foreground" />
@@ -910,8 +867,8 @@ export default function Page() {
                           variant="outline"
                           className={`flex h-auto flex-col items-center gap-1 px-3 py-4 transition-all duration-200 ${
                             selected
-                              ? "border-primary bg-primary/10 text-primary scale-[1.03]"
-                              : "hover:scale-[1.02]"
+                              ? "border-primary bg-primary/10 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary scale-[1.03]"
+                              : "hover:border-primary hover:bg-primary/10 hover:text-primary hover:scale-[1.02]"
                           }`}
                           onClick={() =>
                             setData((d) => ({
@@ -933,7 +890,6 @@ export default function Page() {
 
                 <Separator />
 
-                {/* Budget */}
                 <div className="flex flex-col gap-3">
                   <Label className="flex items-center gap-2 text-sm">
                     <IconWallet className="size-4 text-muted-foreground" />
@@ -948,8 +904,8 @@ export default function Page() {
                           variant="outline"
                           className={`flex h-auto flex-col items-center gap-1 px-3 py-4 transition-all duration-200 ${
                             selected
-                              ? "border-primary bg-primary/10 text-primary scale-[1.03]"
-                              : "hover:scale-[1.02]"
+                              ? "border-primary bg-primary/10 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary scale-[1.03]"
+                              : "hover:border-primary hover:bg-primary/10 hover:text-primary hover:scale-[1.02]"
                           }`}
                           onClick={() =>
                             setData((d) => ({
@@ -977,9 +933,6 @@ export default function Page() {
             </>
           )}
 
-          {/* --------------------------------------------------------- */}
-          {/* Step 5: Health Goals */}
-          {/* --------------------------------------------------------- */}
           {step === 5 && (
             <>
               <CardHeader>
@@ -1006,8 +959,8 @@ export default function Page() {
                       htmlFor={goal.id}
                       className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-all duration-200 ${
                         data.healthGoal === goal.id
-                          ? "border-primary bg-primary/5 scale-[1.01]"
-                          : "border-border hover:bg-muted/50"
+                          ? "border-primary bg-primary/5 hover:border-primary hover:bg-primary/5 scale-[1.01]"
+                          : "border-border hover:border-primary hover:bg-primary/5 hover:scale-[1.01]"
                       }`}
                     >
                       <RadioGroupItem
@@ -1037,7 +990,9 @@ export default function Page() {
 
           <CardFooter className="flex flex-col gap-3">
             {createError && (
-              <p className="text-center text-sm text-destructive">{createError}</p>
+              <p className="text-center text-sm text-destructive">
+                {createError}
+              </p>
             )}
             <div className="flex w-full justify-between">
               <Button variant="outline" onClick={back} disabled={isCreating}>

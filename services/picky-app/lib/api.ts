@@ -1,10 +1,6 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
-// ---------------------------------------------------------------------------
-// Types (mirror the Rust backend models)
-// ---------------------------------------------------------------------------
-
 export interface ProfilePreferences {
   fish: number;
   pork: number;
@@ -43,10 +39,6 @@ export interface CreateProfilePayload {
   budget: string;
 }
 
-// ---------------------------------------------------------------------------
-// Errors
-// ---------------------------------------------------------------------------
-
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -57,10 +49,6 @@ export class ApiError extends Error {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 async function handleResponse<T>(res: Response): Promise<T> {
   if (res.ok) {
     return res.json() as Promise<T>;
@@ -68,10 +56,6 @@ async function handleResponse<T>(res: Response): Promise<T> {
   const text = await res.text().catch(() => res.statusText);
   throw new ApiError(res.status, text);
 }
-
-// ---------------------------------------------------------------------------
-// API calls
-// ---------------------------------------------------------------------------
 
 /**
  * Login with email and password.
@@ -99,7 +83,7 @@ export async function loginProfile(
 export async function createProfile(
   payload: CreateProfilePayload,
 ): Promise<Profile> {
-  const res = await fetch(`${API_BASE}/profile/`, {
+  const res = await fetch(`${API_BASE}/profile/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

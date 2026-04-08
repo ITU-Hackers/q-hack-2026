@@ -2,16 +2,12 @@
 
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from "react";
 import type { Profile } from "@/lib/api";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface UserContextValue {
   /** The currently authenticated user, or null if not logged in. */
@@ -24,20 +20,12 @@ interface UserContextValue {
   logout: () => void;
 }
 
-// ---------------------------------------------------------------------------
-// Context
-// ---------------------------------------------------------------------------
-
 const UserContext = createContext<UserContextValue>({
   user: null,
   mounted: false,
   setUser: () => {},
   logout: () => {},
 });
-
-// ---------------------------------------------------------------------------
-// Provider
-// ---------------------------------------------------------------------------
 
 const STORAGE_KEY = "picky_user";
 
@@ -80,10 +68,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     </UserContext.Provider>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Hook
-// ---------------------------------------------------------------------------
 
 export function useUser(): UserContextValue {
   return useContext(UserContext);
