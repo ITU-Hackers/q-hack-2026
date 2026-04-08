@@ -161,6 +161,15 @@ Do **not** import from `@radix-ui/*`. Base UI's API differs from Radix (e.g. `Di
 
 **Portal/layout caveat:** If the app root does not already have `isolation: isolate`, add it when introducing Dialog, Popover, Menu, or any other component that portals content.
 
+## UI / Layout requirements
+
+**Target form factor: vertical smartphone screen.** The primary users will be on portrait-orientation phones. Every layout, page, and component must work well at narrow widths (360 px–430 px). Specifically:
+- Use vertical stacking and full-width elements as the default; horizontal layouts only where they genuinely fit small screens.
+- Touch targets must be large enough to tap comfortably (minimum 44 × 44 px).
+- Avoid horizontal overflow — no element should cause the page to scroll sideways.
+- Test responsive behaviour at 390 px width (iPhone 14 viewport) as the baseline.
+- Prioritise content legibility and thumb-reachability in all interaction design decisions.
+
 ## Conventions
 
 ### TypeScript / React
