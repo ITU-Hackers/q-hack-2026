@@ -53,29 +53,6 @@ services:
       timeout: 5s
       retries: 5
 
-  mongodb:
-    image: mongo:8
-    container_name: mongodb
-    restart: on-failure
-    hostname: mongodb
-    domainname: mongodb.picky.local
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=picky
-      - MONGO_INITDB_ROOT_PASSWORD=Password123
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      picky-network:
-        aliases:
-          - mongodb.picky.local
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   dagster-webserver:
     container_name: dagster-webserver
     restart: on-failure
