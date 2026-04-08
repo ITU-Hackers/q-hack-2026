@@ -1,0 +1,37 @@
+[package]
+name = "picky"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Internal
+picky-axum = { workspace = true, features = ["oapi"] }
+picky-utils = { workspace = true }
+# AI & async
+rig-core = { workspace = true }
+rig-qdrant = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+# Database
+qdrant-client = { workspace = true }
+# Axum, Tokio and Tower
+axum = { workspace = true, features = ["macros", "tokio", "json", "tracing"] }
+tower-http = { workspace = true, features = ["cors", "trace"] }
+utoipa = { workspace = true, features = ["macros"] }
+utoipa-axum = { workspace = true }
+utoipa-scalar = { workspace = true, features = ["axum"] }
+# Serde
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+# Other
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+http = { workspace = true }
+secrecy = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

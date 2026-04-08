@@ -1,0 +1,12 @@
+[package]
+name = "picky-utils"
+edition = "2024"
+version.workspace = true
+
+[dependencies]
+chrono = { workspace = true, optional = true }
+thiserror = { workspace = true }
+
+[features]
+upn = ["dep:chrono"]
+unit = []
