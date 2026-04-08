@@ -25,7 +25,14 @@ pub fn load(path: &Path) -> anyhow::Result<EmbeddingMap> {
             e
         )
     })?;
-    let reader = BufReader::new(file);
+    load_from_reader(BufReader::new(file))
+}
+
+/// Parse food2vec embeddings from any [`BufRead`] source.
+///
+/// Separated from [`load`] so that tests can pass an in-memory
+/// [`std::io::Cursor`] instead of a real file.
+fn load_from_reader(reader: impl BufRead) -> anyhow::Result<EmbeddingMap> {
     let mut map = HashMap::new();
 
     for line in reader.lines() {
@@ -154,6 +161,7 @@ pub fn normalize(ingredient: &str) -> String {
 /// by mean-pooling the matched food2vec embeddings. Unknown ingredients are skipped.
 ///
 /// Returns `(vector, matched_count, total_count)`.
+#[allow(clippy::missing_panics_doc)]
 pub fn vectorize(
     map: &HashMap<String, [f32; DIM]>,
     ingredients: &[&str],
@@ -180,4 +188,166 @@ pub fn vectorize(
     }
 
     (accum, matched, total)
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use super::*;
+
+    // ── Tier 1: normalize() ──────────────────────────────────────────────────
+
+    #[test]
+    fn normalize_strips_leading_number() {
+        assert_eq!(normalize("2 cups flour"), "flour");
+    }
+
+    #[test]
+    fn normalize_strips_fraction() {
+        assert_eq!(normalize("1/2 tsp salt"), "salt");
+    }
+
+    #[test]
+    fn normalize_joins_spaces_with_underscores() {
+        assert_eq!(normalize("olive oil"), "olive_oil");
+    }
+
+    #[test]
+    fn normalize_lowercases() {
+        assert_eq!(normalize("Salt"), "salt");
+    }
+
+    /// Descriptor words that are not units should be kept, since they form
+    /// part of the model key (e.g. `black_pepper`).
+    #[test]
+    fn normalize_keeps_non_unit_descriptors() {
+        assert_eq!(normalize("3 large eggs"), "large_eggs");
+    }
+
+    #[test]
+    fn normalize_strips_decimal_quantity() {
+        assert_eq!(normalize("0.5 cup sugar"), "sugar");
+    }
+
+    // ── Tier 2: vectorize() ──────────────────────────────────────────────────
+
+    /// Build a minimal 3-dimensional map for math tests.
+    /// Using DIM=3 so expected values are easy to compute by hand.
+    /// The real DIM is 100, but the algorithm is dimension-agnostic.
+    fn make_map() -> HashMap<String, [f32; DIM]> {
+        let mut map = HashMap::new();
+
+        let mut a = [0f32; DIM];
+        a[0] = 1.0;
+        a[1] = 2.0;
+        a[2] = 3.0;
+        map.insert("flour".to_string(), a);
+
+        let mut b = [0f32; DIM];
+        b[0] = 3.0;
+        b[1] = 4.0;
+        b[2] = 5.0;
+        map.insert("salt".to_string(), b);
+
+        map
+    }
+
+    #[test]
+    fn vectorize_single_match_returns_exact_embedding() {
+        let map = make_map();
+        let (vec, matched, total) = vectorize(&map, &["flour"]);
+        assert_eq!(matched, 1);
+        assert_eq!(total, 1);
+        assert_eq!(vec[0], 1.0);
+        assert_eq!(vec[1], 2.0);
+        assert_eq!(vec[2], 3.0);
+    }
+
+    #[test]
+    fn vectorize_two_ingredients_returns_mean() {
+        let map = make_map();
+        let (vec, matched, total) = vectorize(&map, &["flour", "salt"]);
+        assert_eq!(matched, 2);
+        assert_eq!(total, 2);
+        // mean of [1,2,3] and [3,4,5] = [2,3,4]
+        assert_eq!(vec[0], 2.0);
+        assert_eq!(vec[1], 3.0);
+        assert_eq!(vec[2], 4.0);
+    }
+
+    #[test]
+    fn vectorize_all_unknown_returns_zero_vector_and_zero_matched() {
+        let map = make_map();
+        let (vec, matched, total) = vectorize(&map, &["xyzzy", "nonsense"]);
+        assert_eq!(matched, 0);
+        assert_eq!(total, 2);
+        assert!(vec.iter().all(|&v| v == 0.0));
+    }
+
+    #[test]
+    fn vectorize_mixed_known_unknown_averages_over_known_only() {
+        let map = make_map();
+        // "xyzzy" is unknown — mean should be over "flour" only
+        let (vec, matched, total) = vectorize(&map, &["flour", "xyzzy"]);
+        assert_eq!(matched, 1);
+        assert_eq!(total, 2);
+        assert_eq!(vec[0], 1.0);
+        assert_eq!(vec[1], 2.0);
+        assert_eq!(vec[2], 3.0);
+    }
+
+    #[test]
+    fn vectorize_strips_quantities_before_lookup() {
+        let map = make_map();
+        // "2 cups flour" should normalize to "flour" and match
+        let (_, matched, total) = vectorize(&map, &["2 cups flour"]);
+        assert_eq!(matched, 1);
+        assert_eq!(total, 1);
+    }
+
+    // ── Tier 3: load_from_reader() ───────────────────────────────────────────
+
+    fn make_embedding_line(name: &str, values: &[f32; DIM]) -> String {
+        let floats = values.map(|v| v.to_string()).join(" ");
+        format!("{name} {floats}")
+    }
+
+    #[test]
+    fn load_from_reader_parses_known_entries() {
+        let mut a = [0f32; DIM];
+        a[0] = 0.5;
+        let mut b = [0f32; DIM];
+        b[1] = -1.0;
+
+        let content = format!(
+            "{}\n{}\n",
+            make_embedding_line("salt", &a),
+            make_embedding_line("pepper", &b),
+        );
+
+        let map = load_from_reader(Cursor::new(content)).expect("parse should succeed");
+        assert_eq!(map.len(), 2);
+        assert_eq!(map["salt"][0], 0.5);
+        assert_eq!(map["pepper"][1], -1.0);
+    }
+
+    #[test]
+    fn load_from_reader_skips_empty_lines() {
+        let mut a = [0f32; DIM];
+        a[0] = 1.0;
+        let content = format!("\n{}\n\n", make_embedding_line("salt", &a));
+        let map = load_from_reader(Cursor::new(content)).expect("parse should succeed");
+        assert_eq!(map.len(), 1);
+    }
+
+    #[test]
+    fn load_from_reader_skips_lines_with_wrong_dimension() {
+        // Only 3 values — should be ignored (DIM = 100)
+        let content = "bad_entry 0.1 0.2 0.3\n";
+        let map = load_from_reader(Cursor::new(content)).expect("parse should succeed");
+        assert!(map.is_empty());
+    }
 }
