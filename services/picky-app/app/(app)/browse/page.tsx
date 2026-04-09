@@ -37,38 +37,17 @@ function accentForIndex(i: number): string {
   );
 }
 
-const DISH_PHOTOS: Record<string, string> = {
-  // Asian
-  Ramen: "/dishes/ramenjpg.jpg",
-  Sushi: "/dishes/sushi.jpg",
-  Kung_Pao_Chicken: "/dishes/kung-pao-chicken.jpg",
-  Bibimbap: "/dishes/bibimbap.jpg",
-  // Indian
-  Butter_Chicken: "/dishes/butter-chicken.jpg",
-  Biryani: "/dishes/biryani.jpg",
-  Dal_Tadka: "/dishes/dal-tadka.jpg",
-  Palak_Paneer: "/dishes/palak-paneer.jpg",
-  // Italian
-  Pasta_Carbonara: "/dishes/pasta-carbonara.jpg",
-  Risotto_Milanese: "/dishes/risoto-milanese.jpg",
-  Lasagna: "/dishes/lasgnia.jpg",
-  // Mexican
-  Guacamole: "/dishes/guacamole.jpg",
-  Enchiladas: "/dishes/enchiladasjpg.jpg",
-  Chiles_Rellenos: "/dishes/chilles-rellenos.jpg",
-  // French
-  Ratatouille: "/dishes/ratatouille.jpg",
-  Boeuf_Bourguignon: "/dishes/boeuf-bourguignon.jpg",
-  "Crème_Brûlée": "/dishes/creme-brulee.jpg",
-  Coq_au_Vin: "/dishes/coq-au-vin.jpg",
-  // German
-  Käsespätzle: "/dishes/kasespatzle.jpg",
-  Sauerkraut: "/dishes/sauerkraut.jpg",
-  Rouladen: "/dishes/rouladen.jpg",
-  Pretzels: "/dishes/pretzels.jpg",
-  // Italian
-  Pizza_Margherita: "/dishes/pizza-margherita.jpg",
-};
+function dishPhoto(dish: string): string {
+  const slug = dish
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/_/g, "-")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `/dishes/${slug}.jpg`;
+}
 
 function DishCard({
   recipe,
@@ -79,20 +58,21 @@ function DishCard({
   accent: string;
   onAdd: () => void;
 }) {
-  const photo = DISH_PHOTOS[recipe.dish];
+  const [imgError, setImgError] = useState(false);
 
   return (
     <button type="button" onClick={onAdd} className="group w-full text-left">
       <div
         className={`${accent} relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl text-8xl ring-1 ring-border transition-transform duration-200 group-hover:scale-105`}
       >
-        {photo ? (
+        {!imgError ? (
           <Image
-            src={photo}
+            src={dishPhoto(recipe.dish)}
             alt={recipe.dish.replace(/_/g, " ")}
             fill
             className="object-cover"
             sizes="(max-width: 640px) 60vw, (max-width: 768px) 40vw, 33vw"
+            onError={() => setImgError(true)}
           />
         ) : (
           <span>{recipe.emoji}</span>

@@ -351,12 +351,12 @@ class MealRecommender(tfrs.Model):
 
     def compute_loss(
         self,
-        features: dict[str, tf.Tensor],
+        inputs: dict[str, tf.Tensor],
         training: bool = False,
     ) -> tf.Tensor:
-        user_embeddings = self.user_tower(features["user_vector"])
-        meal_embeddings = self.meal_tower(features["meal_embedding"])
-        return self.task(user_embeddings, meal_embeddings)
+        user_embeddings = self.user_tower(inputs["user_vector"])
+        meal_embeddings = self.meal_tower(inputs["meal_embedding"])
+        return self.task(user_embeddings, meal_embeddings)  # type: ignore[call-arg]
 
 
 def _fetch_meal_embeddings(url: str, collection: str) -> tuple[list[str], np.ndarray]:
@@ -523,9 +523,9 @@ def trained_model(
 
     interactions_ds = tf.data.Dataset.from_tensor_slices(
         {
-            "user_vector": X,
-            "meal_embedding": y,
-        }
+            "user_vector": tf.constant(X),
+            "meal_embedding": tf.constant(y),
+        }  # type: ignore[arg-type]
     ).shuffle(n_samples, seed=42)
 
     rec_model = MealRecommender(meals_dataset=meals_ds)
