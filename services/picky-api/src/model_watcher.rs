@@ -117,6 +117,18 @@ async fn check_and_reload(
                 );
                 return Ok(false);
             }
+
+            // Dispatch failures are transient network errors (S3/MinIO unreachable).
+            // Log at debug and retry next interval rather than spamming WARN.
+            if matches!(e, SdkError::DispatchFailure(_)) {
+                tracing::debug!(
+                    bucket,
+                    key,
+                    error = %e,
+                    "S3 unreachable (dispatch failure) — will retry next interval"
+                );
+                return Ok(false);
+            }
             // Preserve the full SdkError (connection, dispatch, service, etc.)
             // so logs show the real root cause (e.g. DNS failure, bad creds).
             return Err(anyhow::anyhow!(
