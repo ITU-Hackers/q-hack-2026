@@ -1,6 +1,6 @@
 "use client";
 
-import { IconLoader2, IconSparkles, IconX } from "@tabler/icons-react";
+import { IconLoader2, IconPlayerStop, IconRobot, IconSparkles, IconX } from "@tabler/icons-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Carousel,
@@ -148,7 +148,7 @@ function createPickyToast(
 ) {
   toast.custom(
     (id) => (
-      <div className="flex justify-center">
+      <div className="flex w-screen justify-center">
         <div className="relative flex w-72 flex-col items-center gap-2 rounded-xl border border-border bg-background p-3 text-center shadow-lg">
           <Image
             src="/picky-mascot.png"
@@ -201,11 +201,15 @@ export default function BrowsePage() {
     hasPendingPrediction,
     toastDismissed,
     pendingMessage,
+    isAutoRunning,
     predictBasket,
     confirmBasket,
     dismissNotification,
     setToastDismissed,
     addRecipe,
+    startAuto,
+    stopAuto,
+    fillCartDirect,
   } = useCart();
   const { user } = useUser();
   const router = useRouter();
@@ -238,9 +242,10 @@ export default function BrowsePage() {
       .catch(() => {/* model not ready — carousel stays hidden */});
   }, [user, recipes]);
 
-  // Trigger prediction once recipes are loaded and cart is empty.
+  // Trigger prediction once recipes are loaded and cart is empty (not in auto mode).
   useEffect(() => {
     if (
+      !isAutoRunning &&
       recipes.length > 0 &&
       items.length === 0 &&
       !notification &&
@@ -251,6 +256,7 @@ export default function BrowsePage() {
       return () => clearTimeout(timer);
     }
   }, [
+    isAutoRunning,
     recipes,
     items.length,
     notification,
@@ -259,11 +265,46 @@ export default function BrowsePage() {
     user,
   ]);
 
+  // Auto-loop: when running and cart is empty, fetch recommendations, fill cart, go to cart.
+  useEffect(() => {
+    if (!isAutoRunning || !user || recipes.length === 0) return;
+    let cancelled = false;
+
+    function pickRandom<T>(arr: T[], n: number): T[] {
+      return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
+    }
+
+    fetchRecommendations(user.id, 5)
+      .then((response) => {
+        if (cancelled) return;
+        const matched: Recipe[] = [];
+        for (const meal of response.meals) {
+          const norm = normaliseName(meal.dish);
+          const found = recipes.find((r) => normaliseName(r.dish) === norm);
+          if (found) matched.push(found);
+        }
+        fillCartDirect(matched.length > 0 ? matched : pickRandom(recipes, 3));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const picks = [...recipes].sort(() => Math.random() - 0.5).slice(0, 3);
+        fillCartDirect(picks);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setTimeout(() => { if (!cancelled) router.push("/cart"); }, 1500);
+        }
+      });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAutoRunning, user, recipes]);
+
   // Show the Picky toast when a notification arrives and the user has opted in
   // (clicked the sparkle button). On first load toastDismissed is true so the
   // toast stays hidden and only the sparkle button appears.
   useEffect(() => {
-    if (notification && !toastDismissed) {
+    if (notification && !toastDismissed && !isAutoRunning) {
       dismissNotification();
       showPickyToast(
         notification,
@@ -277,6 +318,7 @@ export default function BrowsePage() {
   }, [
     notification,
     toastDismissed,
+    isAutoRunning,
     dismissNotification,
     confirmBasket,
     setToastDismissed,
@@ -332,8 +374,33 @@ export default function BrowsePage() {
   return (
     <div className="min-h-screen bg-background py-10">
       <header className="mb-10 px-8 sm:px-16">
-        <h1 className="text-3xl font-bold text-primary">Browse Dishes</h1>
-        {items.length > 0 && (
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold text-primary">Browse Dishes</h1>
+          <Button
+            size="sm"
+            variant={isAutoRunning ? "destructive" : "outline"}
+            onClick={isAutoRunning ? stopAuto : startAuto}
+            className="shrink-0 gap-1.5"
+          >
+            {isAutoRunning ? (
+              <>
+                <IconPlayerStop className="size-4" />
+                Stop Auto
+              </>
+            ) : (
+              <>
+                <IconRobot className="size-4" />
+                Auto Shop
+              </>
+            )}
+          </Button>
+        </div>
+        {isAutoRunning && (
+          <p className="mt-2 text-sm text-muted-foreground animate-pulse">
+            Fetching your Picky suggestions…
+          </p>
+        )}
+        {!isAutoRunning && items.length > 0 && (
           <p className="mt-1 text-sm text-muted-foreground">
             {items.length} items in your predicted basket
           </p>
@@ -368,7 +435,7 @@ export default function BrowsePage() {
         </div>
       )}
 
-      {toastDismissed && (hasPendingPrediction || pendingMessage) && (
+      {!isAutoRunning && toastDismissed && (hasPendingPrediction || pendingMessage) && (
         <button
           type="button"
           onClick={reopenToast}

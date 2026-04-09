@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCheck, IconShoppingCart, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconPlayerStop, IconRobot, IconShoppingCart, IconTrash } from "@tabler/icons-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -109,7 +109,7 @@ function spawnConfetti(
 /* ------------------------------------------------------------------ */
 
 export default function CartPage() {
-  const { items, selectedRecipes, removeItem, purchase } = useCart();
+  const { items, selectedRecipes, removeItem, purchase, isAutoRunning, startAuto, stopAuto } = useCart();
   const router = useRouter();
   const [celebrating, setCelebrating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -134,13 +134,23 @@ export default function CartPage() {
   useEffect(() => {
     if (!celebrating || !canvasRef.current) return;
     spawnConfetti(canvasRef.current, () => {
-      // Hold the success screen a bit before navigating away
       setTimeout(() => {
         purchase();
         router.push("/browse");
       }, 1200);
     });
   }, [celebrating, purchase, router]);
+
+  // Auto-loop: when running, either go to browse (cart empty) or auto-purchase.
+  useEffect(() => {
+    if (!isAutoRunning || celebrating) return;
+    if (items.length === 0) {
+      const t = setTimeout(() => router.push("/browse"), 400);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setCelebrating(true), 2000);
+    return () => clearTimeout(t);
+  }, [isAutoRunning, items.length, celebrating, router]);
 
   if (items.length === 0) {
     return (
@@ -153,6 +163,17 @@ export default function CartPage() {
           Head to Meals and we&apos;ll predict your weekly basket!
         </p>
         <Button onClick={() => router.push("/browse")}>Browse Meals</Button>
+        <Button
+          variant={isAutoRunning ? "destructive" : "outline"}
+          onClick={isAutoRunning ? stopAuto : startAuto}
+          className="gap-1.5"
+        >
+          {isAutoRunning ? (
+            <><IconPlayerStop className="size-4" />Stop Auto</>
+          ) : (
+            <><IconRobot className="size-4" />Auto Shop</>
+          )}
+        </Button>
       </div>
     );
   }
@@ -252,6 +273,24 @@ export default function CartPage() {
       >
         Order with Picnic
       </Button>
+
+      <Button
+        className="mt-2 w-full gap-1.5"
+        variant={isAutoRunning ? "destructive" : "outline"}
+        disabled={celebrating}
+        onClick={isAutoRunning ? stopAuto : startAuto}
+      >
+        {isAutoRunning ? (
+          <><IconPlayerStop className="size-4" />Stop Auto</>
+        ) : (
+          <><IconRobot className="size-4" />Auto Shop</>
+        )}
+      </Button>
+      {isAutoRunning && (
+        <p className="mt-2 text-center text-xs text-muted-foreground animate-pulse">
+          Auto purchasing… purchasing in 2s
+        </p>
+      )}
 
       {/* Keyframe animations */}
       <style jsx global>{`

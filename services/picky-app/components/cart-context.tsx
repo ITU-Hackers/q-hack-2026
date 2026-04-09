@@ -20,6 +20,7 @@ type CartState = {
   hasPendingPrediction: boolean;
   toastDismissed: boolean;
   pendingMessage: string | null;
+  isAutoRunning: boolean;
   predictBasket: (profileId: string, allRecipes: Recipe[]) => void;
   confirmBasket: () => void;
   removeItem: (id: string) => void;
@@ -35,6 +36,9 @@ type CartState = {
       default_price: number;
     }[],
   ) => void;
+  startAuto: () => void;
+  stopAuto: () => void;
+  fillCartDirect: (recipes: Recipe[]) => void;
 };
 
 const CartContext = createContext<CartState | null>(null);
@@ -94,6 +98,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [notification, setNotification] = useState<string | null>(null);
   const [toastDismissed, setToastDismissed] = useState(true);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+  const [isAutoRunning, setIsAutoRunning] = useState(false);
 
   const addRecipe = useCallback(
     (
@@ -228,6 +233,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setToastDismissed(false);
   }, []);
 
+  const startAuto = useCallback(() => {
+    // Clear cart and all pending state, then kick off the loop.
+    setItems([]);
+    setPendingItems([]);
+    setPendingMessage(null);
+    setSelectedRecipes([]);
+    setNotification(null);
+    setToastDismissed(true);
+    setIsAutoRunning(true);
+  }, []);
+
+  const stopAuto = useCallback(() => {
+    setIsAutoRunning(false);
+  }, []);
+
+  // Puts recipes directly into the cart without the pending/notification flow.
+  const fillCartDirect = useCallback((picked: Recipe[]) => {
+    const { items: newItems, recipeNames } = buildItems(picked);
+    setItems(newItems);
+    setSelectedRecipes(recipeNames);
+    setPendingItems([]);
+    setPendingMessage(null);
+    setNotification(null);
+  }, []);
+
   const dismissNotification = useCallback(() => {
     setNotification(null);
   }, []);
@@ -241,6 +271,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         hasPendingPrediction: pendingItems.length > 0,
         toastDismissed,
         pendingMessage,
+        isAutoRunning,
         predictBasket,
         confirmBasket,
         removeItem,
@@ -248,6 +279,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         dismissNotification,
         setToastDismissed,
         addRecipe,
+        startAuto,
+        stopAuto,
+        fillCartDirect,
       }}
     >
       {children}
