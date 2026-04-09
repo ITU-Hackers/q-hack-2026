@@ -15,8 +15,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/components/user-context";
-import { fetchRecipes, type Recipe } from "@/lib/api";
+import { fetchRecommendations, fetchRecipes, type Recipe } from "@/lib/api";
 import { useCart } from "../../../components/cart-context";
+
+function normaliseName(name: string): string {
+  return name.toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+}
 
 const ACCENT_COLORS = [
   "bg-[var(--color-default-secondary)]",
@@ -227,6 +231,7 @@ export default function BrowsePage() {
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
 
   useEffect(() => {
     fetchRecipes()
@@ -236,6 +241,22 @@ export default function BrowsePage() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Fetch top-15 recommendations and cross-reference against full recipe list.
+  useEffect(() => {
+    if (!user || recipes.length === 0) return;
+    fetchRecommendations(user.id, 15)
+      .then((response) => {
+        const matched: Recipe[] = [];
+        for (const meal of response.meals) {
+          const norm = normaliseName(meal.dish);
+          const found = recipes.find((r) => normaliseName(r.dish) === norm);
+          if (found) matched.push(found);
+        }
+        setRecommendedRecipes(matched);
+      })
+      .catch(() => {/* model not ready — carousel stays hidden */});
+  }, [user, recipes]);
 
   // Trigger prediction once recipes are loaded and cart is empty.
   useEffect(() => {
@@ -349,6 +370,13 @@ export default function BrowsePage() {
         </div>
       ) : (
         <div className="flex flex-col gap-16">
+          {recommendedRecipes.length > 0 && (
+            <DishRow
+              title="Recommended for You"
+              recipes={recommendedRecipes}
+              onAdd={handleAdd}
+            />
+          )}
           {regions.map((region) => (
             <DishRow
               key={region}
