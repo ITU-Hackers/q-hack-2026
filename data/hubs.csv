@@ -1,0 +1,17 @@
+hub_id,warehouse_id,name,district,city,address,latitude,longitude
+HUB001,WH001,Schwabing Hub,Schwabing,Munich,Leopoldstraße 12 80802 Munich,48.1614,11.5839
+HUB002,WH001,Maxvorstadt Hub,Maxvorstadt,Munich,Schellingstraße 40 80799 Munich,48.1508,11.5697
+HUB003,WH001,Sendling Hub,Sendling,Munich,Lindwurmstraße 175 80337 Munich,48.1181,11.5468
+HUB004,WH001,Bogenhausen Hub,Bogenhausen,Munich,Prinzregentenstraße 120 81677 Munich,48.1480,11.6051
+HUB005,WH002,Mitte Hub,Mitte,Berlin,Rosenthaler Str. 40 10178 Berlin,52.5252,13.4022
+HUB006,WH002,Prenzlauer Berg Hub,Prenzlauer Berg,Berlin,Kastanienallee 85 10435 Berlin,52.5392,13.4140
+HUB007,WH002,Kreuzberg Hub,Kreuzberg,Berlin,Bergmannstraße 22 10961 Berlin,52.4897,13.3885
+HUB008,WH002,Charlottenburg Hub,Charlottenburg,Berlin,Kantstraße 152 10623 Berlin,52.5067,13.3210
+HUB009,WH003,Altona Hub,Altona,Hamburg,Ottenser Hauptstraße 10 22765 Hamburg,53.5506,9.9352
+HUB010,WH003,Eimsbüttel Hub,Eimsbüttel,Hamburg,Eppendorfer Weg 114 20259 Hamburg,53.5756,9.9637
+HUB011,WH003,HafenCity Hub,HafenCity,Hamburg,Überseeallee 4 20457 Hamburg,53.5413,9.9999
+HUB012,WH003,Barmbek Hub,Barmbek,Hamburg,Fuhlsbüttler Str. 200 22307 Hamburg,53.5943,10.0456
+HUB013,WH004,Sachsenhausen Hub,Sachsenhausen,Frankfurt,Schweizer Straße 44 60594 Frankfurt,50.0993,8.6863
+HUB014,WH004,Bornheim Hub,Bornheim,Frankfurt,Berger Straße 200 60385 Frankfurt,50.1215,8.7123
+HUB015,WH004,Westend Hub,Westend,Frankfurt,Bockenheimer Landstraße 92 60323 Frankfurt,50.1178,8.6638
+HUB016,WH004,Nordend Hub,Nordend,Frankfurt,Eckenheimer Landstraße 80 60318 Frankfurt,50.1311,8.6874

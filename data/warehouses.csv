@@ -1,0 +1,5 @@
+warehouse_id,name,city,country,address,latitude,longitude
+WH001,Munich Central Warehouse,Munich,Germany,Landsberger Str. 210 80687 Munich,48.1351,11.5082
+WH002,Berlin North Warehouse,Berlin,Germany,Behmstraße 58 13357 Berlin,52.5536,13.3886
+WH003,Hamburg Port Warehouse,Hamburg,Germany,Großmannstraße 205 20539 Hamburg,53.5266,10.0425
+WH004,Frankfurt Logistics Hub,Frankfurt,Germany,Hanauer Landstraße 291 60314 Frankfurt,50.1109,8.7243

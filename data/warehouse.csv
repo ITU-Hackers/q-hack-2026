@@ -1,0 +1,70 @@
+item_name,quantity,unit,category,expiry_date,storage_type,price_per_unit,warehouse_id
+salmon,3,200g,protein,2026-04-13,fridge,5.99,WH003
+chicken,5,600g,protein,2026-04-12,fridge,4.49,WH001
+beef,4,500g,protein,2026-04-11,fridge,5.99,WH001
+shrimp,6,300g,protein,2026-04-14,fridge,5.49,WH003
+pork,3,500g,protein,2026-04-12,fridge,4.49,WH002
+ground_beef,5,500g,protein,2026-04-13,fridge,4.49,WH004
+tuna,4,200g,protein,2026-04-12,fridge,5.49,WH003
+tofu,4,400g,protein,2026-04-16,fridge,1.99,WH002
+chicken_thighs,3,600g,protein,2026-04-13,fridge,4.49,WH004
+pork_belly,2,500g,protein,2026-04-11,fridge,5.49,WH001
+eggs,10,6 pcs,protein,2026-04-23,fridge,1.29,WH001
+lamb,2,500g,protein,2026-04-14,fridge,7.99,WH004
+paneer,3,200g,dairy,2026-04-19,fridge,2.99,WH002
+butter,4,250g,dairy,2026-05-09,fridge,1.49,WH001
+cream,3,200ml,dairy,2026-04-19,fridge,1.19,WH001
+milk,5,1L,dairy,2026-04-16,fridge,1.09,WH002
+parmesan,2,100g,dairy,2026-05-30,fridge,2.49,WH004
+mozzarella,3,250g,dairy,2026-04-17,fridge,2.29,WH004
+yogurt,4,500ml,dairy,2026-04-18,fridge,1.49,WH003
+ghee,2,200g,dairy,2026-10-09,pantry,3.49,WH002
+tomato,6,500g,vegetable,2026-04-14,fridge,1.29,WH001
+onion,8,3 pcs,vegetable,2026-05-09,pantry,0.99,WH001
+garlic,6,1 head,vegetable,2026-05-15,pantry,0.49,WH001
+ginger,4,1 piece,vegetable,2026-04-20,fridge,0.79,WH002
+spinach,3,250g,vegetable,2026-04-13,fridge,1.49,WH003
+carrot,5,500g,vegetable,2026-04-20,fridge,0.99,WH002
+mushroom,4,250g,vegetable,2026-04-14,fridge,1.99,WH004
+cucumber,5,1 pc,vegetable,2026-04-15,fridge,0.69,WH003
+jalapeño,3,3 pcs,vegetable,2026-04-16,fridge,0.69,WH004
+avocado,4,1 pc,vegetable,2026-04-12,pantry,1.49,WH001
+lemongrass,2,3 stalks,vegetable,2026-04-18,fridge,1.29,WH002
+basil,2,1 bunch,vegetable,2026-04-14,fridge,1.29,WH004
+cilantro,2,1 bunch,vegetable,2026-04-13,fridge,0.79,WH003
+cauliflower,2,1 head,vegetable,2026-04-17,fridge,1.79,WH002
+bean_sprouts,4,200g,vegetable,2026-04-13,fridge,0.99,WH003
+rice,5,1kg,grain,2027-04-09,pantry,1.99,WH001
+spaghetti,6,500g,grain,2027-06-09,pantry,1.49,WH004
+noodles,4,400g,grain,2027-01-01,pantry,1.49,WH002
+basmati_rice,4,500g,grain,2027-04-09,pantry,1.99,WH002
+rice_noodles,5,400g,grain,2027-01-01,pantry,1.69,WH003
+flour,3,1kg,baking,2026-10-09,pantry,0.99,WH001
+yellow_lentils,4,500g,grain,2027-04-09,pantry,1.79,WH002
+chickpeas,5,400g,grain,2027-04-09,pantry,1.29,WH003
+lasagna_sheets,2,500g,grain,2027-01-01,pantry,1.79,WH004
+arborio_rice,3,500g,grain,2027-04-09,pantry,2.49,WH004
+soy_sauce,4,250ml,condiment,2027-04-09,pantry,1.99,WH003
+olive_oil,3,500ml,oil,2026-10-09,pantry,3.99,WH004
+sesame_oil,2,250ml,oil,2026-12-09,pantry,2.49,WH002
+fish_sauce,2,250ml,condiment,2027-01-01,pantry,1.99,WH003
+hoisin_sauce,3,250ml,condiment,2026-12-09,pantry,2.29,WH002
+coconut_milk,6,400ml,liquid,2026-12-09,pantry,1.79,WH003
+tomato_sauce,5,400ml,condiment,2027-01-01,pantry,1.49,WH001
+miso_paste,2,300g,condiment,2026-10-09,fridge,2.99,WH002
+gochujang,2,200g,condiment,2026-12-09,fridge,2.99,WH003
+tomato_puree,4,500ml,condiment,2027-01-01,pantry,1.29,WH004
+peanut_sauce,2,200ml,condiment,2026-10-09,pantry,2.49,WH003
+cumin,3,50g,spice,2027-04-09,pantry,0.99,WH002
+garam_masala,2,50g,spice,2027-04-09,pantry,1.79,WH002
+turmeric,3,50g,spice,2027-04-09,pantry,1.29,WH004
+black_pepper,4,50g,spice,2027-04-09,pantry,1.29,WH001
+coriander,3,50g,spice,2027-04-09,pantry,0.99,WH002
+dried_chiles,2,50g,spice,2027-04-09,pantry,1.29,WH004
+five_spice,1,50g,spice,2027-04-09,pantry,1.49,WH003
+saffron,1,1g,spice,2027-04-09,pantry,4.99,WH004
+salt,5,500g,spice,2028-04-09,pantry,0.49,WH001
+cardamom,2,25g,spice,2027-04-09,pantry,2.99,WH002
+peanuts,4,100g,other,2026-10-09,pantry,1.49,WH001
+honey,2,250g,condiment,2028-04-09,pantry,2.99,WH003
+sugar,3,500g,baking,2028-04-09,pantry,0.99,WH001
