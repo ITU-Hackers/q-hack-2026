@@ -238,9 +238,9 @@ function showPickyToast(
         <Image
           src="/picky-mascot.png"
           alt="Picky"
-          width={96}
-          height={96}
-          className="absolute -top-18 left-1/2 -translate-x-1/2 animate-bounce"
+          width={124}
+          height={124}
+          className="absolute -top-28 left-1/2 animate-bounce-subtle"
         />
         <button
           type="button"
