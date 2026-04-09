@@ -35,7 +35,7 @@ export default function CartPage() {
         <h2 className="text-lg font-semibold text-foreground">
           Your cart is empty
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground text-center">
           Head to Meals and we'll predict your weekly basket!
         </p>
         <Button onClick={() => router.push("/browse")}>Browse Meals</Button>
