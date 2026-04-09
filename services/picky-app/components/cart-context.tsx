@@ -92,7 +92,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
   const [pendingItems, setPendingItems] = useState<Ingredient[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
-  const [toastDismissed, setToastDismissed] = useState(false);
+  const [toastDismissed, setToastDismissed] = useState(true);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const addRecipe = useCallback(
@@ -109,13 +109,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         prev.includes(recipeName) ? prev : [...prev, recipeName],
       );
       setItems((prev) => {
-        const newItems = [...prev];
+        const newItems = prev.map((item) => ({ ...item }));
         for (const ing of ingredients) {
-          const existing = newItems.find(
+          const idx = newItems.findIndex(
             (i) => i.name === ing.name && i.recipeSource === recipeName,
           );
-          if (existing) {
-            existing.quantity += 1;
+          if (idx >= 0) {
+            newItems[idx] = { ...newItems[idx]!, quantity: newItems[idx]!.quantity + 1 };
           } else {
             newItems.push({
               id: `item-${nextId++}`,
@@ -145,7 +145,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setPendingItems(newItems);
         setPendingMessage(msg);
         setNotification(msg);
-        setToastDismissed(false);
       };
 
       // Attempt to use the recommendation API, fall back to random picks on any failure.

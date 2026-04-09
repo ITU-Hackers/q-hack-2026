@@ -1,6 +1,6 @@
 "use client";
 
-import { IconShoppingCart, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconShoppingCart, IconTrash } from "@tabler/icons-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -9,12 +9,110 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Separator } from "@workspace/ui/components/separator";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "../../../components/cart-context";
+
+/* ------------------------------------------------------------------ */
+/*  Canvas confetti                                                    */
+/* ------------------------------------------------------------------ */
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  color: string;
+  rotation: number;
+  rotationSpeed: number;
+  opacity: number;
+}
+
+const CONFETTI_COLORS = [
+  "#e1171e", // Picnic red
+  "#ff6b6b",
+  "#ffd93d",
+  "#6bcb77",
+  "#4d96ff",
+  "#ff922b",
+  "#cc5de8",
+  "#ffffff",
+];
+
+function spawnConfetti(
+  canvas: HTMLCanvasElement,
+  onDone: () => void,
+) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles: Particle[] = [];
+  const count = 120;
+
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * canvas.width * 0.4,
+      y: canvas.height * 0.45,
+      vx: (Math.random() - 0.5) * 14,
+      vy: -Math.random() * 16 - 6,
+      size: Math.random() * 8 + 4,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]!,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.3,
+      opacity: 1,
+    });
+  }
+
+  let frame = 0;
+  const maxFrames = 300;
+
+  function animate() {
+    if (!ctx) return;
+    frame++;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of particles) {
+      p.x += p.vx;
+      p.vy += 0.35; // gravity
+      p.y += p.vy;
+      p.rotation += p.rotationSpeed;
+      if (frame > maxFrames - 60) {
+        p.opacity = Math.max(0, p.opacity - 0.02);
+      }
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      ctx.restore();
+    }
+
+    if (frame < maxFrames) {
+      requestAnimationFrame(animate);
+    } else {
+      onDone();
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function CartPage() {
   const { items, selectedRecipes, removeItem, purchase } = useCart();
   const router = useRouter();
+  const [celebrating, setCelebrating] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -28,6 +126,22 @@ export default function CartPage() {
     }))
     .filter((g) => g.ingredients.length > 0);
 
+  const handlePurchase = useCallback(() => {
+    setCelebrating(true);
+  }, []);
+
+  // Launch confetti when celebration starts
+  useEffect(() => {
+    if (!celebrating || !canvasRef.current) return;
+    spawnConfetti(canvasRef.current, () => {
+      // Hold the success screen a bit before navigating away
+      setTimeout(() => {
+        purchase();
+        router.push("/browse");
+      }, 1200);
+    });
+  }, [celebrating, purchase, router]);
+
   if (items.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4">
@@ -36,7 +150,7 @@ export default function CartPage() {
           Your cart is empty
         </h2>
         <p className="text-sm text-muted-foreground text-center">
-          Head to Meals and we'll predict your weekly basket!
+          Head to Meals and we&apos;ll predict your weekly basket!
         </p>
         <Button onClick={() => router.push("/browse")}>Browse Meals</Button>
       </div>
@@ -45,6 +159,40 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
+      {/* Celebration overlay */}
+      {celebrating && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* Backdrop */}
+          <div className="absolute inset-0 animate-[fadeIn_0.3s_ease-out] bg-black/80" />
+
+          {/* Confetti canvas */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 pointer-events-none"
+          />
+
+          {/* Success card */}
+          <div className="relative z-10 flex flex-col items-center gap-4 animate-[scaleIn_0.5s_ease-out]">
+            <div className="flex size-20 items-center justify-center rounded-full bg-primary shadow-xl animate-[bounceIn_0.6s_ease-out]">
+              <IconCheck className="size-10 text-primary-foreground" strokeWidth={3} />
+            </div>
+            <Image
+              src="/picky-mascot.png"
+              alt="Picky"
+              width={100}
+              height={100}
+              className="animate-[bounceIn_0.8s_ease-out]"
+            />
+            <p className="text-xl font-bold text-white drop-shadow-lg animate-[fadeIn_0.8s_ease-out]">
+              Order placed!
+            </p>
+            <p className="text-sm text-white/80 drop-shadow animate-[fadeIn_1s_ease-out]">
+              Picky is preparing your groceries
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 flex items-center gap-3">
         <IconShoppingCart className="size-6 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">Your Cart</h1>
@@ -99,13 +247,29 @@ export default function CartPage() {
 
       <Button
         className="mt-4 w-full"
-        onClick={() => {
-          purchase();
-          router.push("/browse");
-        }}
+        disabled={celebrating}
+        onClick={handlePurchase}
       >
         Order with Picnic
       </Button>
+
+      {/* Keyframe animations */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.5); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes bounceIn {
+          0% { opacity: 0; transform: scale(0.3); }
+          50% { opacity: 1; transform: scale(1.1); }
+          70% { transform: scale(0.95); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

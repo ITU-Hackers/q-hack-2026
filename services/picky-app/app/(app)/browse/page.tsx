@@ -258,9 +258,11 @@ export default function BrowsePage() {
     user,
   ]);
 
-  // Show the Picky toast when a notification arrives.
+  // Show the Picky toast when a notification arrives and the user has opted in
+  // (clicked the sparkle button). On first load toastDismissed is true so the
+  // toast stays hidden and only the sparkle button appears.
   useEffect(() => {
-    if (notification) {
+    if (notification && !toastDismissed) {
       dismissNotification();
       showPickyToast(
         notification,
@@ -273,6 +275,7 @@ export default function BrowsePage() {
     }
   }, [
     notification,
+    toastDismissed,
     dismissNotification,
     confirmBasket,
     setToastDismissed,
@@ -357,7 +360,7 @@ export default function BrowsePage() {
         </div>
       )}
 
-      {toastDismissed && (
+      {toastDismissed && (hasPendingPrediction || pendingMessage) && (
         <button
           type="button"
           onClick={reopenToast}
