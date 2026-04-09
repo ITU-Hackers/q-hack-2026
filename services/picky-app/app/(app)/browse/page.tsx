@@ -284,7 +284,6 @@ export default function BrowsePage() {
 
   const reopenToast = () => {
     if (pendingMessage) {
-      setToastDismissed(false);
       showPickyToast(
         pendingMessage,
         () => {
@@ -294,6 +293,7 @@ export default function BrowsePage() {
         () => setToastDismissed(true),
       );
     } else if (recipes.length > 0 && user) {
+      setToastDismissed(false);
       predictBasket(user.id, recipes);
     }
   };
