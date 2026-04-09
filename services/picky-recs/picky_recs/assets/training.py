@@ -88,9 +88,14 @@ _CUISINE_INGREDIENTS: dict[str, list[str]] = {
     "Italian": ["pasta", "tomato", "cheese", "olive"],
     "French": ["butter", "mushroom", "lemon"],
     "Mexican": ["chili", "jalapeno", "tomato"],
-    "Indian": ["cumin", "coriander", "curry", "chickpeas", "lentils"],
+    # Extended with confirmed food2vec vocab: turmeric, basmati, cardamom, naan
+    "Indian": ["cumin", "coriander", "curry", "chickpeas", "lentils",
+               "turmeric", "basmati", "cardamom", "naan"],
     "Mediterranean": ["olive", "feta", "tomato", "eggplant"],
     "American": ["beef", "bacon", "cheese"],
+}
+_CUISINE_TARGET_WEIGHTS: dict[str, float] = {
+    "Italian": 6.0,
 }
 _RESTRICTION_INGREDIENTS: dict[str, list[str]] = {
     "vegan": ["tofu", "lentils", "chickpeas", "spinach", "kale"],
@@ -280,10 +285,10 @@ def _profile_target(
     for ing in _HEALTH_GOAL_INGREDIENTS.get(health_goal, []):
         _add(ing, 0.8)
 
-    # Cuisines
     for cuisine in cuisines:
+        w = _CUISINE_TARGET_WEIGHTS.get(cuisine, 0.6)
         for ing in _CUISINE_INGREDIENTS.get(cuisine, []):
-            _add(ing, 0.6)
+            _add(ing, w)
 
     # Dietary restrictions
     for restr in restrictions:
@@ -526,7 +531,7 @@ def trained_model(
     rec_model = MealRecommender(meals_dataset=meals_ds)
     rec_model.compile(optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.1))
 
-    history = rec_model.fit(interactions_ds.batch(256), epochs=10, verbose=0)
+    history = rec_model.fit(interactions_ds.batch(256), epochs=25, verbose=0)
 
     final_loss = float(history.history["loss"][-1])
     context.log.info(f"Training complete. Final retrieval loss: {final_loss:.6f}")
