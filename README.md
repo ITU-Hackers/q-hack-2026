@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🛒 Picky</h1>
+  <h1>Picky</h1>
   <p><strong>Personalized meal & grocery recommendations for Picnic</strong></p>
   <p>
     Q-Summit · Mannheim University Hackathon
@@ -142,16 +142,6 @@ python scripts/generate_customer_vectors.py \
 ```
 
 Optional flags: `--clear-existing`, `--dry-run`
-
----
-
-## Connect with DBeaver (PostgreSQL)
-
-- **Host:** `localhost`
-- **Port:** `5432`
-- **Database:** `primary`
-- **Username:** `picky`
-- **Password:** `Password123`
 
 ---
 
