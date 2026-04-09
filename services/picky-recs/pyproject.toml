@@ -13,6 +13,9 @@ dependencies = [
     "skl2onnx",
     "psycopg2-binary",
     "qdrant-client",
+    "tensorflow",
+    "tf-keras",
+    "tf2onnx",
 ]
 
 [dependency-groups]

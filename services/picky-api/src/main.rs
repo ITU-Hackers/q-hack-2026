@@ -5,6 +5,7 @@ use axum::response::{IntoResponse, Redirect};
 use axum::routing::get;
 use http::Method;
 use picky_axum::shutdown_signal;
+use qdrant_client::Qdrant;
 use secrecy::ExposeSecret;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
@@ -20,10 +21,12 @@ use crate::state::AppState;
 mod agent;
 mod api;
 mod config;
+mod food2vec;
 mod model;
 mod model_watcher;
 mod oapi;
 mod portkey;
+mod profile_features;
 mod state;
 mod tools;
 
@@ -67,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build(),
     );
 
-    // Spawn the background model watcher (polls S3 for decision-tree model changes).
+    // Spawn the background model watcher (polls S3 for user-tower model changes).
     let (shared_model, _model_watcher_handle) = model_watcher::spawn(
         s3_client,
         CONFIG.S3_BUCKET.to_string(),
@@ -79,8 +82,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_pool = sqlx::PgPool::connect(CONFIG.DATABASE_URL.as_ref()).await?;
     sqlx::migrate!().run(&db_pool).await?;
 
+    // Build the Qdrant gRPC client for ANN recipe search.
+    let qdrant = Arc::new(Qdrant::from_url(CONFIG.QDRANT_URL_GRPC.as_ref()).build()?);
+
     let agent = Arc::new(agent::build_agent().await?);
-    let state = AppState::new(agent, shared_model, db_pool);
+    let state = AppState::new(agent, shared_model, db_pool, qdrant);
 
     let cors = CorsLayer::new()
         .allow_origin(CONFIG.ALLOWED_ORIGINS.clone())

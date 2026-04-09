@@ -15,50 +15,76 @@ from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, ass
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
-__all__ = ["recipe_collection", "recipe_embeddings"]
-
-# ── Configuration ─────────────────────────────────────────────────────────────
+__all__ = ["recipe_collection", "recipe_vectors"]
 
 FOOD2VEC_DIM = 100
 BATCH_SIZE = 50
 
 _ASSETS_DIR = Path(__file__).parent
-_SERVICE_DIR = _ASSETS_DIR.parents[1]   # services/picky-recs/
-_SERVICES_DIR = _SERVICE_DIR.parent     # services/
+_SERVICE_DIR = _ASSETS_DIR.parents[1]
 
 QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
 QDRANT_COLLECTION = os.environ.get("QDRANT_RECIPES_COLLECTION", "recipes")
-FOOD2VEC_PATH = os.environ.get(
-    "FOOD2VEC_PATH",
-    str(_SERVICES_DIR / "picky" / "models" / "food2vec.txt"),
-)
-RECIPES_CSV = os.environ.get(
-    "RECIPES_CSV",
-    str(_SERVICE_DIR / "data" / "recipes.csv"),
-)
+FOOD2VEC_PATH = str(_SERVICE_DIR / "picky_recs" / "data" / "food2vec.txt")
+RECIPES_CSV = str(_SERVICE_DIR / "picky_recs" / "data" / "recipes.csv")
 
 INGREDIENT_COLS = [f"ingredient_{i}" for i in range(1, 9)]
 
-# ── Units mirrored from food2vec.rs ──────────────────────────────────────────
-
-_UNITS: frozenset[str] = frozenset({
-    "tsp", "tsps", "teaspoon", "teaspoons",
-    "tbsp", "tbsps", "tablespoon", "tablespoons",
-    "cup", "cups",
-    "oz", "ounce", "ounces",
-    "lb", "lbs", "pound", "pounds",
-    "g", "gram", "grams",
-    "kg", "kilogram", "kilograms",
-    "ml", "milliliter", "milliliters",
-    "l", "liter", "liters",
-    "pint", "pints", "quart", "quarts", "gallon", "gallons",
-    "can", "cans", "package", "packages", "pkg",
-    "bunch", "bunches", "clove", "cloves",
-    "slice", "slices", "piece", "pieces",
-    "handful", "pinch", "dash",
-})
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
+_UNITS: frozenset[str] = frozenset(
+    {
+        "tsp",
+        "tsps",
+        "teaspoon",
+        "teaspoons",
+        "tbsp",
+        "tbsps",
+        "tablespoon",
+        "tablespoons",
+        "cup",
+        "cups",
+        "oz",
+        "ounce",
+        "ounces",
+        "lb",
+        "lbs",
+        "pound",
+        "pounds",
+        "g",
+        "gram",
+        "grams",
+        "kg",
+        "kilogram",
+        "kilograms",
+        "ml",
+        "milliliter",
+        "milliliters",
+        "l",
+        "liter",
+        "liters",
+        "pint",
+        "pints",
+        "quart",
+        "quarts",
+        "gallon",
+        "gallons",
+        "can",
+        "cans",
+        "package",
+        "packages",
+        "pkg",
+        "bunch",
+        "bunches",
+        "clove",
+        "cloves",
+        "slice",
+        "slices",
+        "piece",
+        "pieces",
+        "handful",
+        "pinch",
+        "dash",
+    }
+)
 
 
 def _normalize(ingredient: str) -> str:
@@ -129,9 +155,6 @@ def _dish_uuid(dish: str) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"picky-recipe:{dish}"))
 
 
-# ── Assets ────────────────────────────────────────────────────────────────────
-
-
 @asset(
     description=(
         "Ensure the Qdrant 'recipes' collection exists with 100-dim cosine vectors."
@@ -157,9 +180,11 @@ def recipe_collection(context: AssetExecutionContext) -> None:
         "vectors (100-dim float32, mean-pooled). Upserted in batches of 50."
     ),
 )
-def recipe_embeddings(context: AssetExecutionContext) -> MaterializeResult:
+def recipe_vectors(context: AssetExecutionContext) -> MaterializeResult:
     embeddings = load_food2vec(FOOD2VEC_PATH)
-    context.log.info(f"Loaded {len(embeddings)} food2vec embeddings from {FOOD2VEC_PATH}")
+    context.log.info(
+        f"Loaded {len(embeddings)} food2vec embeddings from {FOOD2VEC_PATH}"
+    )
 
     df = pd.read_csv(RECIPES_CSV)
     context.log.info(f"Loaded {len(df)} recipes from {RECIPES_CSV}")
@@ -174,7 +199,7 @@ def recipe_embeddings(context: AssetExecutionContext) -> MaterializeResult:
         ingredients = [
             str(row[col])
             for col in INGREDIENT_COLS
-            if pd.notna(row[col]) and str(row[col]).strip()
+            if bool(pd.notna(row[col])) and str(row[col]).strip() != ""
         ]
 
         vec, matched, total = vectorize(embeddings, ingredients)

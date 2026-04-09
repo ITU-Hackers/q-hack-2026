@@ -1,7 +1,8 @@
 """Dagster assets for the ML training pipeline.
 
-Uses static hardcoded data to train a simple DecisionTreeClassifier
-and exports the model in ONNX format for cross-language inference.
+Trains a MLPRegressor user-tower that maps 128-dimensional profile feature
+vectors (matching picky-api's profile_features module) to 100-dimensional
+embeddings, and exports the model in ONNX format for cross-language inference.
 """
 
 import os
@@ -9,6 +10,7 @@ import tempfile
 
 import numpy as np
 import pandas as pd
+import psycopg2
 from botocore.exceptions import ClientError
 from dagster import (
     AssetExecutionContext,
@@ -19,20 +21,74 @@ from dagster import (
 from dagster_aws.s3 import S3Resource
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import FloatTensorType
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPRegressor
 
-__all__ = ["training_data", "trained_model"]
+__all__ = ["customer_vectors", "training_data", "trained_model"]
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "picky-models")
 S3_MODEL_KEY = os.environ.get("S3_MODEL_KEY", "models/picky-recs/model.onnx")
 
-FEATURE_NAMES = ["spicy", "sweet", "salty", "warm"]
+_DEFAULT_TRAINING_DB_URL = "postgresql://picky:Password123@postgres.picky.local:5432/training"
+
+# Must match picky-api/src/profile_features.rs (OUT_DIMS = 128)
+# and picky-api/src/model.rs (embed_user output = 100).
+USER_VECTOR_DIM = 128
+EMBEDDING_DIM = 100
+
+
+VECTOR_FEATURE_NAMES = [
+    "spend_trend",
+    "budget_util_rate",
+    "loyalty_staples_fraction",
+    "loyalty_one_time_fraction",
+    "avg_reorder_interval_days",
+    "top_category_concentration",
+    "order_interval_consistency",
+    "protein_fraction",
+    "dairy_fraction",
+    "carbs_fraction",
+    "vegetables_fraction",
+    "snacks_fraction",
+]
+
+
+@asset(
+    description=(
+        "Read weekly ML metrics from PostgreSQL and aggregate them into "
+        "per-customer feature vectors, averaged over all recorded weeks. "
+        "Depends on seed_synthetic_users having populated the weekly_metrics table."
+    ),
+    deps=["seed_synthetic_users"],
+)
+def customer_vectors(context: AssetExecutionContext) -> pd.DataFrame:
+    """Query weekly_metrics and return a DataFrame with one row per customer."""
+    db_url = os.environ.get("TRAINING_DB_URL", _DEFAULT_TRAINING_DB_URL)
+    conn = psycopg2.connect(db_url)
+
+    cols = ", ".join(f"AVG({f}) AS {f}" for f in VECTOR_FEATURE_NAMES)
+    query = f"""
+        SELECT user_id, {cols}
+        FROM user_weekly_metrics
+        GROUP BY user_id
+        ORDER BY user_id
+    """  # noqa: S608 — internal training DB, no user-supplied input
+
+    df = pd.read_sql(query, conn)
+    conn.close()
+
+    context.log.info(
+        f"Built customer vectors: {len(df)} users × {len(df.columns) - 1} features"
+    )
+    context.log.info(f"Feature columns: {VECTOR_FEATURE_NAMES}")
+
+    return df
 
 
 @asset(
     description="Static training data for a simple food preference classifier. "
     "Features: spicy (0/1), sweet (0/1), salty (0/1), warm (0/1). "
     "Label: 1 = user likes it, 0 = user dislikes it.",
+    deps=["recipe_vectors", "customer_vectors"],
 )
 def training_data(context: AssetExecutionContext) -> pd.DataFrame:
     """Return a hardcoded dataset of food preferences."""
@@ -53,27 +109,50 @@ def training_data(context: AssetExecutionContext) -> pd.DataFrame:
 
 
 @asset(
-    description="Train a DecisionTreeClassifier on the static food preference "
-    "data and export the model in ONNX format to S3 (MinIO).",
+    description="Train a MLPRegressor user-tower that maps 128-dimensional "
+    "profile feature vectors (as produced by picky-api's profile_features module) "
+    "to 100-dimensional embeddings, then export the model in ONNX format to S3 "
+    "(MinIO). Using a regressor avoids the ONNX ZipMap output type that classifiers "
+    "emit, which is not yet supported by ort 2.x.",
 )
 def trained_model(
     context: AssetExecutionContext,
     s3: S3Resource,
-    training_data: pd.DataFrame,
 ) -> MaterializeResult:
-    """Train a decision tree, convert to ONNX, and upload to S3."""
-    X = training_data[FEATURE_NAMES].to_numpy(dtype=np.float32)
-    y = training_data["liked"].to_numpy()
+    """Train a user-tower MLP, convert to ONNX, and upload to S3."""
+    rng = np.random.RandomState(42)
 
-    model = DecisionTreeClassifier(max_depth=3, random_state=42)
+    # Generate synthetic 128-dim unit-normalised user vectors.
+    # These mirror the vectors produced by profile_features::featurize in picky-api.
+    n_samples = 2000
+    X = rng.randn(n_samples, USER_VECTOR_DIM).astype(np.float32)
+    norms = np.linalg.norm(X, axis=1, keepdims=True)
+    X = X / np.maximum(norms, 1e-10)
+
+    # Synthetic targets: 100-dim embeddings derived from a low-rank latent structure
+    # so the MLP has a non-trivial projection to learn.
+    latent = rng.randn(n_samples, 16).astype(np.float32)
+    w_out = rng.randn(16, EMBEDDING_DIM).astype(np.float32)
+    y = latent @ w_out
+    y_norms = np.linalg.norm(y, axis=1, keepdims=True)
+    y = y / np.maximum(y_norms, 1e-10)
+
+    model = MLPRegressor(
+        hidden_layer_sizes=(64,),
+        activation="relu",
+        max_iter=300,
+        random_state=42,
+    )
     model.fit(X, y)
 
-    accuracy = model.score(X, y)
-    context.log.info(f"Training accuracy: {accuracy:.4f}")
+    train_r2 = model.score(X, y)
+    context.log.info(f"Training R² score: {train_r2:.4f}")
 
-    # Convert to ONNX format
-    initial_types = [("features", FloatTensorType([None, len(FEATURE_NAMES)]))]
-    onnx_model = convert_sklearn(model, "decision_tree", initial_types)
+    # Convert to ONNX — MLPRegressor outputs a plain float32 tensor of shape
+    # (N, EMBEDDING_DIM); no ZipMap is emitted, so ort can load this without
+    # hitting the unimplemented Map type branch.
+    initial_types = [("features", FloatTensorType([None, USER_VECTOR_DIM]))]
+    onnx_model = convert_sklearn(model, "user_tower", initial_types)
     # convert_sklearn returns ModelProto | None in stubs, but never returns None on success.
     model_bytes: bytes = onnx_model.SerializeToString()  # type: ignore[union-attr]
     context.log.info(f"ONNX model size: {len(model_bytes)} bytes")
@@ -102,12 +181,14 @@ def trained_model(
 
     return MaterializeResult(
         metadata={
-            "accuracy": MetadataValue.float(accuracy),
+            "r2_score": MetadataValue.float(train_r2),
             "s3_path": MetadataValue.text(s3_path),
             "format": MetadataValue.text("ONNX"),
             "model_size_bytes": MetadataValue.int(len(model_bytes)),
-            "features": MetadataValue.text(", ".join(FEATURE_NAMES)),
-            "samples": MetadataValue.int(len(X)),
-            "tree_depth": MetadataValue.int(model.get_depth()),
+            "input_dim": MetadataValue.int(USER_VECTOR_DIM),
+            "output_dim": MetadataValue.int(EMBEDDING_DIM),
+            "samples": MetadataValue.int(n_samples),
+            "hidden_layers": MetadataValue.text("(64,)"),
         },
     )
+

@@ -36,7 +36,7 @@ Work in the sub-project that matches your task. Do **not** edit unrelated sub-pr
 
 | Layer            | Technology                                                                              |
 | ---------------- | --------------------------------------------------------------------------------------- |
-| Frontend         | Next.js 16 (App Router, PWA via Serwist) + TypeScript, in `services/picky-app/`        |
+| Frontend         | Next.js 16 (App Router, PWA via Serwist) + TypeScript, in `services/picky-app/`         |
 | Shared UI        | `@workspace/ui` package in `packages/ui/` — shadcn components built on **Base UI**      |
 | Styling          | Tailwind CSS v4                                                                         |
 | Icons            | `@tabler/icons-react` (used in both `picky-app` and `packages/ui`)                      |
@@ -223,6 +223,7 @@ The `(app)` route group renders a fixed bottom navigation bar (Browse / Cart / P
 ## UI / Layout requirements
 
 **Target form factor: vertical smartphone screen.** The primary users will be on portrait-orientation phones. Every layout, page, and component must work well at narrow widths (360 px–430 px). Specifically:
+
 - Use vertical stacking and full-width elements as the default; horizontal layouts only where they genuinely fit small screens.
 - Touch targets must be large enough to tap comfortably (minimum 44 × 44 px).
 - Avoid horizontal overflow — no element should cause the page to scroll sideways.

@@ -6,7 +6,7 @@ use crate::state::AppState;
 
 mod create;
 mod login;
-mod model;
+pub(crate) mod model;
 mod read;
 mod update;
 

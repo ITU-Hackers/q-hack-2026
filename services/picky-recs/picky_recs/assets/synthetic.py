@@ -48,6 +48,12 @@ def seed_synthetic_users(context: AssetExecutionContext) -> MaterializeResult:
     db_url = os.environ.get("TRAINING_DB_URL", _DEFAULT_DB_URL)
     conn = connect_db(db_url)
 
+    # Ensure schema exists before the idempotency check — on a fresh database
+    # the synthetic_users table won't exist yet, so the SELECT below would fail
+    # with "relation does not exist" without this call first.
+    # create_schema uses CREATE TABLE IF NOT EXISTS so it is safe to call every run.
+    create_schema(conn, clear_existing=False)
+
     # Idempotency check
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM synthetic_users")
@@ -65,9 +71,6 @@ def seed_synthetic_users(context: AssetExecutionContext) -> MaterializeResult:
                 "existing_users": MetadataValue.int(existing),
             }
         )
-
-    # Ensure schema exists (idempotent CREATE TABLE IF NOT EXISTS)
-    create_schema(conn, clear_existing=False)
 
     rng = np.random.default_rng(SEED)
     users = generate_users(rng, USERS_PER_ARCHETYPE)
