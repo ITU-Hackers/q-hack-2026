@@ -89,18 +89,21 @@ impl OnnxModel {
             .run(ort::inputs![input_tensor])
             .context("ONNX inference failed")?;
 
-        // The user tower has a single output of shape (1, 100).
-        // Access by index — we don't hard-code the output node name because
-        // tf2onnx may choose different names across export runs.
+        // The user tower has a single output of shape (1, 100) or (100, 1)
+        // depending on the tf2onnx export run.  Access by index — we don't
+        // hard-code the output node name because tf2onnx may choose different
+        // names across export runs.
         let (shape, values) = outputs[0]
             .try_extract_tensor::<f32>()
             .context("Failed to extract f32 output tensor")?;
 
-        // Shape derefs to [i64]; check dimensions individually to avoid
-        // type-inference ambiguity with array literals.
+        // Accept both [1, 100] (row vector) and [100, 1] (column vector) —
+        // tf2onnx sometimes transposes the output depending on the Keras export
+        // path.  The underlying 100 floats are identical in both cases.
         anyhow::ensure!(
-            shape.len() == 2 && shape[0] == 1 && shape[1] == 100,
-            "Unexpected output shape: expected [1, 100], got {shape:?}"
+            shape.len() == 2
+                && ((shape[0] == 1 && shape[1] == 100) || (shape[0] == 100 && shape[1] == 1)),
+            "Unexpected output shape: expected [1, 100] or [100, 1], got {shape:?}"
         );
 
         anyhow::ensure!(
