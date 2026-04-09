@@ -75,7 +75,7 @@ function DishRow({
       <Carousel opts={{ align: "center", dragFree: true, loop: true }}>
         <CarouselContent
           className="py-2"
-          viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+          viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
         >
           {recipes.map((recipe, i) => (
             <CarouselItem
