@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
-import type { Recipe } from "@/lib/api";
+import { fetchRecommendations, type Recipe } from "@/lib/api";
 
 export type Ingredient = {
   id: string;
@@ -20,7 +20,7 @@ type CartState = {
   hasPendingPrediction: boolean;
   toastDismissed: boolean;
   pendingMessage: string | null;
-  predictBasket: (allRecipes: Recipe[]) => void;
+  predictBasket: (profileId: string, allRecipes: Recipe[]) => void;
   confirmBasket: () => void;
   removeItem: (id: string) => void;
   purchase: () => void;
@@ -50,7 +50,42 @@ function pickRandom<T>(arr: T[], count: number): T[] {
   return shuffled.slice(0, count);
 }
 
+/** Normalise a dish name for fuzzy matching: lowercase, no underscores/hyphens/extra spaces. */
+function normaliseName(name: string): string {
+  return name.toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 let nextId = 0;
+
+function buildItems(picked: Recipe[]): {
+  items: Ingredient[];
+  recipeNames: string[];
+} {
+  const recipeNames = picked.map((r) => r.dish.replace(/_/g, " "));
+  const newItems: Ingredient[] = [];
+
+  for (const recipe of picked) {
+    const recipeName = recipe.dish.replace(/_/g, " ");
+    for (const ing of recipe.ingredients) {
+      const existing = newItems.find((i) => i.name === ing.name);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        newItems.push({
+          id: `item-${nextId++}`,
+          name: ing.name,
+          quantity: 1,
+          unit: ing.default_unit,
+          price: ing.default_price,
+          emoji: ing.emoji,
+          recipeSource: recipeName,
+        });
+      }
+    }
+  }
+
+  return { items: newItems, recipeNames };
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<Ingredient[]>([]);
@@ -99,42 +134,64 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const predictBasket = useCallback((allRecipes: Recipe[]) => {
-    if (allRecipes.length === 0) return;
+  const predictBasket = useCallback(
+    (profileId: string, allRecipes: Recipe[]) => {
+      if (allRecipes.length === 0) return;
 
-    const count = 2 + Math.floor(Math.random() * 2);
-    const picked = pickRandom(allRecipes, count);
-    const recipeNames = picked.map((r) => r.dish.replace(/_/g, " "));
-    setSelectedRecipes(recipeNames);
+      const applyPrediction = (picked: Recipe[]) => {
+        const { items: newItems, recipeNames } = buildItems(picked);
+        const msg = `Hey it's Picky! I predicted your weekly basket \u2014 ${picked.length} meals, ${newItems.length} items ready to go.`;
+        setSelectedRecipes(recipeNames);
+        setPendingItems(newItems);
+        setPendingMessage(msg);
+        setNotification(msg);
+        setToastDismissed(false);
+      };
 
-    const newItems: Ingredient[] = [];
+      // Attempt to use the recommendation API, fall back to random picks on any failure.
+      fetchRecommendations(profileId, 5)
+        .then((response) => {
+          const meals = response.meals;
 
-    for (const recipe of picked) {
-      const recipeName = recipe.dish.replace(/_/g, " ");
-      for (const ing of recipe.ingredients) {
-        const existing = newItems.find((i) => i.name === ing.name);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          newItems.push({
-            id: `item-${nextId++}`,
-            name: ing.name,
-            quantity: 1,
-            unit: ing.default_unit,
-            price: ing.default_price,
-            emoji: ing.emoji,
-            recipeSource: recipeName,
-          });
-        }
-      }
-    }
+          if (meals.length === 0) {
+            applyPrediction(
+              pickRandom(allRecipes, 2 + Math.floor(Math.random() * 2)),
+            );
+            return;
+          }
 
-    const msg = `Hey it's Picky! I predicted your weekly basket \u2014 ${picked.length} meals, ${newItems.length} items ready to go.`;
-    setPendingItems(newItems);
-    setPendingMessage(msg);
-    setNotification(msg);
-    setToastDismissed(false);
-  }, []);
+          // Cross-reference recommended meal names against the full recipe list
+          // to resolve real ingredient data (recommendations only carry string names).
+          const matched: Recipe[] = [];
+          for (const meal of meals) {
+            const normMeal = normaliseName(meal.dish);
+            const found = allRecipes.find(
+              (r) => normaliseName(r.dish) === normMeal,
+            );
+            if (found) {
+              matched.push(found);
+            }
+          }
+
+          if (matched.length === 0) {
+            // None of the recommended meals matched — fall back to random.
+            applyPrediction(
+              pickRandom(allRecipes, 2 + Math.floor(Math.random() * 2)),
+            );
+            return;
+          }
+
+          applyPrediction(matched);
+        })
+        .catch(() => {
+          // Backend unreachable or model not ready — degrade gracefully.
+          applyPrediction(
+            pickRandom(allRecipes, 2 + Math.floor(Math.random() * 2)),
+          );
+        });
+    },
+    [],
+  );
 
   const confirmBasket = useCallback(() => {
     setItems((prev) => {

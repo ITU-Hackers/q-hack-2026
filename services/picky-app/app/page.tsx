@@ -59,18 +59,13 @@ const PREFERENCE_ITEMS = [
   { id: "fish", label: "Fish", restrictedBy: ["vegan", "vegetarian"] },
   { id: "pork", label: "Pork", restrictedBy: ["vegan", "vegetarian"] },
   { id: "beef", label: "Beef", restrictedBy: ["vegan", "vegetarian"] },
-  {
-    id: "dairy",
-    label: "Dairy",
-    restrictedBy: ["vegan", "lactose-intolerant"],
-  },
+  { id: "dairy", label: "Dairy", restrictedBy: ["vegan"] },
   { id: "spicy", label: "Spicy food", restrictedBy: [] },
 ];
 
 const HARD_RESTRICTIONS = [
   { id: "nut-allergy", label: "Nut Allergy" },
   { id: "gluten-free", label: "Gluten Free" },
-  { id: "lactose-intolerant", label: "Lactose Intolerant" },
   { id: "vegan", label: "Vegan" },
   { id: "vegetarian", label: "Vegetarian" },
 ];
@@ -79,27 +74,22 @@ const HEALTH_GOALS = [
   {
     id: "high-protein",
     label: "High Protein",
-    description: "Fuel your muscles with protein-packed meals",
   },
   {
     id: "keto",
     label: "Keto",
-    description: "Low carb, high fat for sustained energy",
   },
   {
     id: "low-carb",
     label: "Low Carb",
-    description: "Lighter on carbs while staying balanced",
   },
   {
     id: "balanced",
     label: "Balanced",
-    description: "A bit of everything, perfectly portioned",
   },
   {
     id: "mediterranean",
     label: "Mediterranean",
-    description: "Heart-healthy and full of flavour",
   },
 ];
 
@@ -107,49 +97,35 @@ const COOKING_TIMES = [
   {
     id: "quick",
     label: "Quick",
-    description: "Under 20 min",
     icon: "🚀",
   },
   {
     id: "moderate",
     label: "Moderate",
-    description: "20–40 min",
     icon: "🍳",
   },
   {
     id: "enthusiast",
     label: "Enthusiast",
-    description: "Over 40 min",
     icon: "👨‍🍳",
   },
 ];
 
-// Base budget per person per week (€). Scales with adults + 0.5×kids.
-const BUDGET_BASE = { tight: 25, moderate: 50, flexible: 75 };
-
-function budgetTiers(adults: number, kids: number) {
-  const heads = adults + kids * 0.5;
-  const fmt = (v: number) => `€${Math.round(v)}/wk`;
-  const tight = Math.round(BUDGET_BASE.tight * heads);
-  const moderate = Math.round(BUDGET_BASE.moderate * heads);
-  const flexible = Math.round(BUDGET_BASE.flexible * heads);
+function budgetTiers() {
   return [
     {
       id: "tight",
       label: "Tight",
-      description: `Under ${fmt(tight)}`,
       icon: "🪙",
     },
     {
       id: "moderate",
       label: "Moderate",
-      description: `${fmt(tight)}–${fmt(moderate)}`,
       icon: "💶",
     },
     {
       id: "flexible",
       label: "Flexible",
-      description: `Over ${fmt(flexible)}`,
       icon: "✨",
     },
   ];
@@ -457,51 +433,57 @@ export default function Page() {
               Fresh ideas, delivered to your door.
             </CardDescription>
           </CardHeader>
-          <form className="contents" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={data.email}
-                onChange={(e) =>
-                  setData((d) => ({ ...d, email: e.target.value }))
-                }
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={data.password}
-                onChange={(e) =>
-                  setData((d) => ({ ...d, password: e.target.value }))
-                }
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            {loginError && (
-              <p className="text-center text-sm text-destructive">
-                {loginError}
+          <form
+            className="contents"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={data.email}
+                  onChange={(e) =>
+                    setData((d) => ({ ...d, email: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={data.password}
+                  onChange={(e) =>
+                    setData((d) => ({ ...d, password: e.target.value }))
+                  }
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              {loginError && (
+                <p className="text-center text-sm text-destructive">
+                  {loginError}
+                </p>
+              )}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoginLoading || !data.email || !data.password}
+              >
+                {isLoginLoading ? "Signing in…" : "Sign In"}
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">
+                No account yet? Enter your email and a password and we&apos;ll
+                set one up for you.
               </p>
-            )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoginLoading || !data.email || !data.password}
-            >
-              {isLoginLoading ? "Signing in…" : "Sign In"}
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              No account yet? Enter your email and a password and we&apos;ll set
-              one up for you.
-            </p>
-          </CardFooter>
+            </CardFooter>
           </form>
         </Card>
       </div>
@@ -643,10 +625,6 @@ export default function Page() {
             <>
               <CardHeader>
                 <CardTitle>Who&apos;s at home?</CardTitle>
-                <CardDescription>
-                  This helps us get portion sizes right and suggest meals
-                  everyone will enjoy.
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
                 <div className="flex flex-col gap-4">
@@ -700,10 +678,6 @@ export default function Page() {
             <>
               <CardHeader>
                 <CardTitle>What flavours excite you?</CardTitle>
-                <CardDescription>
-                  Pick the cuisines your household loves so we can fill your
-                  weekly plan with meals you&apos;ll actually look forward to.
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -744,11 +718,6 @@ export default function Page() {
             <>
               <CardHeader>
                 <CardTitle>Any dietary needs?</CardTitle>
-                <CardDescription>
-                  Restrictions are strictly enforced&mdash;we&apos;ll never
-                  suggest something that doesn&apos;t fit. Preferences help us
-                  rank recipes so your favourites rise to the top.
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
                 <div className="flex flex-wrap gap-2">
@@ -846,11 +815,6 @@ export default function Page() {
             <>
               <CardHeader>
                 <CardTitle>Your kitchen reality</CardTitle>
-                <CardDescription>
-                  Knowing your time and budget means we only suggest meals that
-                  actually work for your week&mdash;no aspirational recipes
-                  you&apos;ll never cook.
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
                 <div className="flex flex-col gap-3">
@@ -879,9 +843,6 @@ export default function Page() {
                         >
                           <span className="text-xl">{t.icon}</span>
                           <span className="text-sm font-medium">{t.label}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {t.description}
-                          </span>
                         </Button>
                       );
                     })}
@@ -896,7 +857,7 @@ export default function Page() {
                     Weekly grocery budget
                   </Label>
                   <div className="grid grid-cols-3 gap-3">
-                    {budgetTiers(data.adults, data.kids).map((b) => {
+                    {budgetTiers().map((b) => {
                       const selected = data.budget === b.id;
                       return (
                         <Button
@@ -916,9 +877,6 @@ export default function Page() {
                         >
                           <span className="text-xl">{b.icon}</span>
                           <span className="text-sm font-medium">{b.label}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {b.description}
-                          </span>
                         </Button>
                       );
                     })}
@@ -937,10 +895,6 @@ export default function Page() {
             <>
               <CardHeader>
                 <CardTitle>Any health goals?</CardTitle>
-                <CardDescription>
-                  This shapes the nutritional balance of your meal plans. Pick
-                  what feels right&mdash;you can change it any time.
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
                 <RadioGroup
@@ -971,9 +925,6 @@ export default function Page() {
                       <div className="flex flex-col gap-0.5">
                         <span className="text-sm font-medium">
                           {goal.label}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {goal.description}
                         </span>
                       </div>
                     </label>

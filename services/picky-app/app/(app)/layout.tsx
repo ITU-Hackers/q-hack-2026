@@ -11,7 +11,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useUser } from "@/components/user-context";
-import { CartProvider, useCart } from "./cart-context";
+import { CartProvider, useCart } from "../../components/cart-context";
 
 const tabs = [
   { href: "/profile", label: "Profile", icon: IconUser },
@@ -31,7 +31,6 @@ function BottomNav() {
     }
   }, [mounted, user, router]);
 
-  // Avoid flashing protected content before the localStorage check finishes.
   if (!mounted || !user) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-background">

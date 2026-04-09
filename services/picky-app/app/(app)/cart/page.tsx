@@ -10,7 +10,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Separator } from "@workspace/ui/components/separator";
 import { useRouter } from "next/navigation";
-import { useCart } from "../cart-context";
+import { useCart } from "../../../components/cart-context";
 
 export default function CartPage() {
   const { items, selectedRecipes, removeItem, purchase } = useCart();

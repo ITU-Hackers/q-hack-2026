@@ -9,12 +9,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@workspace/ui/components/carousel";
+import AutoScroll from "embla-carousel-auto-scroll";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { type Recipe, fetchRecipes } from "@/lib/api";
-import { useCart } from "../cart-context";
+import { useUser } from "@/components/user-context";
+import { fetchRecipes, type Recipe } from "@/lib/api";
+import { useCart } from "../../../components/cart-context";
 
 const ACCENT_COLORS = [
   "bg-[var(--color-default-secondary)]",
@@ -25,7 +27,10 @@ const ACCENT_COLORS = [
 ];
 
 function accentForIndex(i: number): string {
-  return ACCENT_COLORS[i % ACCENT_COLORS.length] ?? "bg-[var(--color-default-secondary)]";
+  return (
+    ACCENT_COLORS[i % ACCENT_COLORS.length] ??
+    "bg-[var(--color-default-secondary)]"
+  );
 }
 
 function DishCard({
@@ -49,8 +54,7 @@ function DishCard({
           {recipe.dish.replace(/_/g, " ")}
         </p>
         <p className="truncate text-sm text-muted-foreground">
-          {recipe.ingredients.length} ingredients &middot;{" "}
-          &euro;
+          {recipe.ingredients.length} ingredients &middot; &euro;
           {recipe.ingredients
             .reduce((s, i) => s + i.default_price, 0)
             .toFixed(2)}
@@ -72,7 +76,18 @@ function DishRow({
   return (
     <section className="px-8 sm:px-16">
       <h2 className="mb-4 text-xl font-semibold text-foreground">{title}</h2>
-      <Carousel opts={{ align: "center", dragFree: true, loop: true }}>
+      <Carousel
+        opts={{ align: "center", dragFree: true, loop: true }}
+        plugins={[
+          AutoScroll({
+            speed: 0.5,
+            startDelay: 500,
+            stopOnInteraction: false,
+            stopOnMouseEnter: true,
+            stopOnFocusIn: true,
+          }),
+        ]}
+      >
         <CarouselContent
           className="py-2"
           viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
@@ -104,31 +119,37 @@ function createPickyToast(
 ) {
   toast.custom(
     (id) => (
-      <div className="flex w-screen justify-center">
-      <div className="relative flex w-72 flex-col items-center gap-2 rounded-xl border border-border bg-background p-3 text-center shadow-lg">
-        <Image
-          src="/picky-mascot.png"
-          alt="Picky"
-          width={124}
-          height={124}
-          className="absolute -top-28 left-1/2 animate-bounce-subtle"
-        />
-        <button
-          type="button"
-          className="absolute top-2 right-2 rounded-full p-0.5"
-          onClick={() => { toast.dismiss(id); onDismiss(); }}
-        >
-          <IconX className="size-3.5" />
-        </button>
-        <p className="px-4 text-base font-medium leading-snug">{msg}</p>
-        <Button
-          size="sm"
-          className="w-full"
-          onClick={() => { toast.dismiss(id); onConfirm(); }}
-        >
-          View Cart
-        </Button>
-      </div>
+      <div className="flex justify-center">
+        <div className="relative flex w-72 flex-col items-center gap-2 rounded-xl border border-border bg-background p-3 text-center shadow-lg">
+          <Image
+            src="/picky-mascot.png"
+            alt="Picky"
+            width={124}
+            height={124}
+            className="absolute -top-28 left-1/2 animate-bounce-subtle"
+          />
+          <button
+            type="button"
+            className="absolute top-2 right-2 rounded-full p-0.5"
+            onClick={() => {
+              toast.dismiss(id);
+              onDismiss();
+            }}
+          >
+            <IconX className="size-3.5" />
+          </button>
+          <p className="px-4 text-base font-medium leading-snug">{msg}</p>
+          <Button
+            size="sm"
+            className="w-full"
+            onClick={() => {
+              toast.dismiss(id);
+              onConfirm();
+            }}
+          >
+            View Cart
+          </Button>
+        </div>
       </div>
     ),
     { duration: Infinity },
@@ -157,6 +178,7 @@ export default function BrowsePage() {
     setToastDismissed,
     addRecipe,
   } = useCart();
+  const { user } = useUser();
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,12 +198,20 @@ export default function BrowsePage() {
       recipes.length > 0 &&
       items.length === 0 &&
       !notification &&
-      !hasPendingPrediction
+      !hasPendingPrediction &&
+      user
     ) {
-      const timer = setTimeout(() => predictBasket(recipes), 600);
+      const timer = setTimeout(() => predictBasket(user.id, recipes), 600);
       return () => clearTimeout(timer);
     }
-  }, [recipes, items.length, notification, hasPendingPrediction, predictBasket]);
+  }, [
+    recipes,
+    items.length,
+    notification,
+    hasPendingPrediction,
+    predictBasket,
+    user,
+  ]);
 
   // Show the Picky toast when a notification arrives.
   useEffect(() => {
@@ -196,7 +226,13 @@ export default function BrowsePage() {
         () => setToastDismissed(true),
       );
     }
-  }, [notification, dismissNotification, confirmBasket, setToastDismissed, router]);
+  }, [
+    notification,
+    dismissNotification,
+    confirmBasket,
+    setToastDismissed,
+    router,
+  ]);
 
   const reopenToast = () => {
     if (pendingMessage) {
@@ -209,8 +245,8 @@ export default function BrowsePage() {
         },
         () => setToastDismissed(true),
       );
-    } else if (recipes.length > 0) {
-      predictBasket(recipes);
+    } else if (recipes.length > 0 && user) {
+      predictBasket(user.id, recipes);
     }
   };
 

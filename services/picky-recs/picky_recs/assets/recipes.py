@@ -10,7 +10,7 @@ import uuid
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
+import psycopg2
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
@@ -22,13 +22,11 @@ BATCH_SIZE = 50
 
 _ASSETS_DIR = Path(__file__).parent
 _SERVICE_DIR = _ASSETS_DIR.parents[1]
-
-QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
-QDRANT_COLLECTION = os.environ.get("QDRANT_RECIPES_COLLECTION", "recipes")
 FOOD2VEC_PATH = str(_SERVICE_DIR / "picky_recs" / "data" / "food2vec.txt")
-RECIPES_CSV = str(_SERVICE_DIR / "picky_recs" / "data" / "recipes.csv")
 
-INGREDIENT_COLS = [f"ingredient_{i}" for i in range(1, 9)]
+QDRANT_URL = os.environ["QDRANT_URL"]
+QDRANT_COLLECTION = os.environ["QDRANT_RECIPES_COLLECTION"]
+PRIMARY_POSTGRES_URL = os.environ["PRIMARY_POSTGRES_URL"]
 
 _UNITS: frozenset[str] = frozenset(
     {
@@ -176,8 +174,9 @@ def recipe_collection(context: AssetExecutionContext) -> None:
 @asset(
     deps=["recipe_collection"],
     description=(
-        "Embed all recipes from recipes.csv into Qdrant using food2vec ingredient "
-        "vectors (100-dim float32, mean-pooled). Upserted in batches of 50."
+        "Embed all recipes from PostgreSQL into Qdrant using food2vec "
+        "ingredient vectors (100-dim float32, mean-pooled). Upserted in "
+        "batches of 50. Re-materializing picks up any new or updated dishes."
     ),
 )
 def recipe_vectors(context: AssetExecutionContext) -> MaterializeResult:
@@ -186,8 +185,22 @@ def recipe_vectors(context: AssetExecutionContext) -> MaterializeResult:
         f"Loaded {len(embeddings)} food2vec embeddings from {FOOD2VEC_PATH}"
     )
 
-    df = pd.read_csv(RECIPES_CSV)
-    context.log.info(f"Loaded {len(df)} recipes from {RECIPES_CSV}")
+    conn = psycopg2.connect(PRIMARY_POSTGRES_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT r.dish, r.region, array_agg(i.name) AS ingredients
+                FROM recipes r
+                JOIN recipe_ingredients ri ON ri.recipe_id = r.id
+                JOIN ingredients i ON i.id = ri.ingredient_id
+                GROUP BY r.id, r.dish, r.region
+                ORDER BY r.dish
+            """)
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    context.log.info(f"Loaded {len(rows)} recipes from PostgreSQL")
 
     client = QdrantClient(url=QDRANT_URL)
 
@@ -195,29 +208,23 @@ def recipe_vectors(context: AssetExecutionContext) -> MaterializeResult:
     total_matched = 0
     zero_match_count = 0
 
-    for _, row in df.iterrows():
-        ingredients = [
-            str(row[col])
-            for col in INGREDIENT_COLS
-            if bool(pd.notna(row[col])) and str(row[col]).strip() != ""
-        ]
+    for dish, region, ingredients in rows:
+        ingredients = ingredients or []
 
         vec, matched, total = vectorize(embeddings, ingredients)
         total_matched += matched
 
         if matched == 0:
             zero_match_count += 1
-            context.log.warning(
-                f"No embeddings matched for '{row['dish']}': {ingredients}"
-            )
+            context.log.warning(f"No embeddings matched for '{dish}': {ingredients}")
 
         points.append(
             PointStruct(
-                id=_dish_uuid(str(row["dish"])),
+                id=_dish_uuid(dish),
                 vector=vec.tolist(),
                 payload={
-                    "region": str(row["region"]),
-                    "dish": str(row["dish"]),
+                    "region": region,
+                    "dish": dish,
                     "ingredients": ingredients,
                     "matched": matched,
                     "total": total,
@@ -234,11 +241,11 @@ def recipe_vectors(context: AssetExecutionContext) -> MaterializeResult:
         client.upsert(collection_name=QDRANT_COLLECTION, points=points)
         context.log.info(f"Upserted final batch of {len(points)} points")
 
-    avg_match_rate = total_matched / (len(df) * len(INGREDIENT_COLS))
+    avg_match_rate = total_matched / max(sum(len(r[2] or []) for r in rows), 1)
 
     return MaterializeResult(
         metadata={
-            "recipes_embedded": MetadataValue.int(len(df)),
+            "recipes_embedded": MetadataValue.int(len(rows)),
             "zero_match_recipes": MetadataValue.int(zero_match_count),
             "avg_ingredient_match_rate": MetadataValue.float(avg_match_rate),
             "collection": MetadataValue.text(QDRANT_COLLECTION),

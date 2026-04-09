@@ -118,11 +118,7 @@ pub fn featurize(profile: &ProfileRow) -> [f32; OUT_DIMS] {
         "Mediterranean",
         "American",
     ];
-    multi_hot(
-        &profile.cuisines,
-        CUISINES,
-        &mut raw[cursor..cursor + 7],
-    );
+    multi_hot(&profile.cuisines, CUISINES, &mut raw[cursor..cursor + 7]);
     cursor += 7;
     // cursor = 23
 

@@ -79,7 +79,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to PostgreSQL.
     let db_pool = sqlx::PgPool::connect(CONFIG.DATABASE_URL.as_ref()).await?;
-    sqlx::migrate!().run(&db_pool).await?;
 
     // Build the Qdrant gRPC client for ANN recipe search.
     let qdrant = Arc::new(Qdrant::from_url(CONFIG.QDRANT_URL_GRPC.as_ref()).build()?);
