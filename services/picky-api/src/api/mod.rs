@@ -4,12 +4,10 @@ use crate::state::AppState;
 
 use utoipa_axum::{router::OpenApiRouter, routes};
 
-pub(crate) mod profile;
-
-mod chat;
-mod recommend;
-mod profile;
-mod recipes;
+pub mod chat;
+pub mod profile;
+pub mod recipes;
+pub mod recommend;
 
 pub fn router(state: AppState) -> OpenApiRouter<AppState> {
     OpenApiRouter::new()

@@ -21,7 +21,6 @@ use crate::state::AppState;
 mod agent;
 mod api;
 mod config;
-mod food2vec;
 mod model;
 mod model_watcher;
 mod oapi;
