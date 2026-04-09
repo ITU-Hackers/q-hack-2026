@@ -300,6 +300,11 @@ export default function BrowsePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAutoRunning, user, recipes]);
 
+  // Dismiss any open toast as soon as auto mode starts.
+  useEffect(() => {
+    if (isAutoRunning) toast.dismiss();
+  }, [isAutoRunning]);
+
   // Show the Picky toast when a notification arrives and the user has opted in
   // (clicked the sparkle button). On first load toastDismissed is true so the
   // toast stays hidden and only the sparkle button appears.
