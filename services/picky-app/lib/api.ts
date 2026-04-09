@@ -39,6 +39,34 @@ export interface CreateProfilePayload {
   budget: string;
 }
 
+export interface RecipeIngredient {
+  id: number;
+  name: string;
+  emoji: string;
+  category: string;
+  default_unit: string;
+  default_price: number;
+}
+
+export interface Recipe {
+  id: number;
+  region: string;
+  dish: string;
+  emoji: string;
+  ingredients: RecipeIngredient[];
+}
+
+export async function fetchRecipes(region?: string): Promise<Recipe[]> {
+  const params = region ? `?region=${encodeURIComponent(region)}` : "";
+  try {
+    const res = await fetch(`${API_BASE}/recipes${params}`);
+    return await handleResponse<Recipe[]>(res);
+  } catch {
+    console.warn("Could not reach the recipe API — is the backend running?");
+    return [];
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,

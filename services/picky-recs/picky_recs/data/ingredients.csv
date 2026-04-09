@@ -1,0 +1,497 @@
+name,emoji,category,default_unit,default_price
+noodles,🍜,grain,400g,1.49
+pork_broth,🍖,liquid,1L,2.49
+soy_sauce,🥫,condiment,250ml,1.99
+garlic,🧄,vegetable,1 head,0.49
+ginger,🫚,vegetable,1 piece,0.79
+soft_boiled_egg,🥚,protein,4 pcs,1.29
+green_onion,🧅,vegetable,1 bunch,0.89
+nori,🌿,other,10 sheets,2.49
+sushi_rice,🍚,grain,500g,2.29
+salmon,🐟,protein,200g,5.99
+tuna,🐟,protein,200g,5.49
+avocado,🥑,vegetable,1 pc,1.49
+wasabi,🟢,condiment,30g,1.99
+pickled_ginger,🫚,condiment,100g,1.49
+chicken,🍗,protein,600g,4.49
+peanuts,🥜,other,100g,1.49
+dried_chiles,🌶️,spice,50g,1.29
+rice_vinegar,🍶,condiment,250ml,1.79
+sugar,🍬,baking,500g,0.99
+short_grain_rice,🍚,grain,500g,2.29
+beef,🥩,protein,500g,5.99
+spinach,🌿,vegetable,250g,1.49
+bean_sprouts,🌱,vegetable,200g,0.99
+carrot,🥕,vegetable,500g,0.99
+gochujang,🌶️,condiment,200g,2.99
+sesame_oil,🫙,oil,250ml,2.49
+egg,🥚,protein,6 pcs,1.29
+rice_noodles,🍜,grain,400g,1.69
+shrimp,🦐,protein,300g,5.49
+fish_sauce,🐟,condiment,250ml,1.99
+tamarind,🟤,condiment,200g,1.79
+lime,🍋,fruit,3 pcs,0.99
+pork,🐷,protein,500g,4.49
+dumpling_wrappers,🥟,grain,300g,2.29
+bamboo_shoots,🎋,vegetable,200g,1.49
+pear,🍐,fruit,2 pcs,1.29
+pork_shoulder,🐷,protein,800g,6.99
+hoisin_sauce,🥫,condiment,250ml,2.29
+honey,🍯,condiment,250g,2.99
+five_spice,🌿,spice,50g,1.49
+shaoxing_wine,🍶,liquid,250ml,2.99
+whole_duck,🦆,protein,1.8kg,12.99
+chinese_pancake,🥞,grain,10 pcs,2.49
+cucumber,🥒,vegetable,1 pc,0.69
+glass_noodles,🍜,grain,200g,1.49
+mushroom,🍄,vegetable,250g,1.99
+baguette,🥖,grain,1 pc,1.29
+pate,🫙,protein,100g,2.49
+pickled_daikon,🥕,vegetable,200g,1.79
+cilantro,🌿,vegetable,1 bunch,0.79
+jalapeño,🌶️,vegetable,3 pcs,0.69
+mayo,🫙,condiment,250ml,1.49
+soft_tofu,🧊,protein,400g,1.99
+ground_pork,🐷,protein,400g,3.99
+doubanjiang,🌶️,condiment,200g,2.99
+sichuan_pepper,🌶️,spice,50g,1.99
+broth,🍖,liquid,1L,1.99
+rice_cakes,🍡,grain,500g,2.49
+fish_cake,🐟,protein,200g,2.29
+onion,🧅,vegetable,3 pcs,0.99
+cooked_rice,🍚,grain,500g,1.49
+shallot,🧅,vegetable,3 pcs,1.29
+chili,🌶️,spice,3 pcs,0.69
+kecap_manis,🥫,condiment,250ml,2.29
+coconut_milk,🥥,liquid,400ml,1.79
+laksa_paste,🌶️,condiment,200g,2.99
+tofu_puffs,🧊,protein,200g,1.99
+sweet_potato,🍠,vegetable,500g,1.49
+flour,🌾,baking,1kg,0.99
+ice_water,💧,liquid,500ml,0.00
+dashi,🍵,liquid,500ml,2.49
+mirin,🍶,condiment,250ml,2.49
+miso_paste,🫙,condiment,300g,2.99
+tofu,🧊,protein,400g,1.99
+wakame,🌿,other,50g,2.49
+salt,🧂,spice,500g,0.49
+water,💧,liquid,1L,0.00
+beef_broth,🍖,liquid,1L,2.49
+beef_slices,🥩,protein,300g,5.49
+napa_cabbage,🥬,vegetable,1 head,1.49
+sesame_paste,🫙,condiment,200g,2.49
+lemongrass,🌿,vegetable,3 stalks,1.29
+galangal,🫚,spice,100g,1.49
+turmeric,🟡,spice,50g,1.29
+kaffir_lime,🍋,fruit,3 pcs,1.49
+rice_paper,🧻,grain,200g,1.99
+vermicelli,🍜,grain,200g,1.29
+lettuce,🥬,vegetable,1 head,0.99
+mint,🌿,vegetable,1 bunch,0.89
+peanut_sauce,🥜,condiment,200ml,2.49
+cabbage,🥬,vegetable,1 head,1.29
+pork_belly,🐷,protein,500g,5.49
+bonito_flakes,🐟,other,30g,3.49
+okonomiyaki_sauce,🥫,condiment,250ml,2.49
+octopus,🐙,protein,300g,6.99
+chicken_thighs,🍗,protein,600g,4.49
+sake,🍶,liquid,250ml,3.99
+sesame,🫘,other,100g,1.29
+tomato_puree,🍅,condiment,500ml,1.29
+cream,🥛,dairy,200ml,1.19
+butter,🧈,dairy,250g,1.49
+garam_masala,🌶️,spice,50g,1.79
+basmati_rice,🍚,grain,500g,1.99
+yogurt,🥛,dairy,500ml,1.49
+saffron,🟡,spice,1g,4.99
+ghee,🧈,dairy,200g,3.49
+fried_onions,🧅,vegetable,100g,1.29
+whole_spices,🌿,spice,50g,2.49
+yellow_lentils,🫘,grain,500g,1.79
+tomato,🍅,vegetable,500g,1.29
+cumin,🌿,spice,50g,0.99
+paneer,🧀,dairy,200g,2.99
+potato,🥔,vegetable,1kg,1.49
+green_peas,🫛,vegetable,300g,1.29
+coriander,🌿,spice,50g,0.99
+pastry_dough,🥧,baking,400g,2.29
+oil,🫙,oil,500ml,1.99
+tikka_spices,🌶️,spice,50g,1.99
+all_purpose_flour,🌾,baking,1kg,0.99
+yeast,🫙,baking,50g,0.79
+milk,🥛,dairy,1L,1.09
+chickpeas,🫘,grain,400g,1.29
+amchur,🥭,spice,50g,1.49
+cashews,🥜,other,100g,2.49
+cardamom,🌿,spice,25g,2.99
+cauliflower,🥦,vegetable,1 head,1.79
+lamb,🐑,protein,500g,7.99
+kashmiri_chili,🌶️,spice,50g,1.79
+rice,🍚,grain,1kg,1.99
+urad_dal,🫘,grain,500g,1.99
+fenugreek,🌿,spice,50g,0.99
+potato_filling,🥔,vegetable,300g,1.49
+mustard_seeds,🟡,spice,50g,0.99
+curry_leaves,🌿,spice,1 pack,1.29
+bhatura_dough,🫓,baking,400g,2.29
+mixed_vegetables,🥕,vegetable,500g,2.29
+pav_bun,🍞,grain,4 pcs,1.29
+pav_bhaji_masala,🌶️,spice,50g,1.49
+lemon,🍋,fruit,3 pcs,0.99
+mustard_greens,🥬,vegetable,250g,1.79
+spices,🌶️,spice,50g,1.99
+milk_powder,🥛,dairy,200g,2.49
+sugar_syrup,🍯,condiment,250ml,1.99
+rose_water,🌹,condiment,100ml,1.99
+whole_milk,🥛,dairy,1L,1.29
+pistachios,🟢,other,100g,3.49
+almonds,🌰,other,100g,2.49
+tandoori_masala,🌶️,spice,50g,1.79
+red_chili,🌶️,spice,50g,0.99
+vinegar,🍶,condiment,250ml,1.29
+pork_loin,🐷,protein,500g,5.49
+lentils,🫘,grain,500g,1.79
+pumpkin,🎃,vegetable,500g,1.99
+dhansak_masala,🌶️,spice,50g,1.79
+semolina_puri,🫓,grain,200g,1.99
+spiced_water,💧,liquid,500ml,0.49
+tamarind_chutney,🟤,condiment,200ml,1.99
+chaat_masala,🌶️,spice,50g,1.29
+okra,🟢,vegetable,250g,1.99
+jaggery,🟤,baking,200g,1.49
+pizza_dough,🍕,baking,400g,1.79
+tomato_sauce,🍅,condiment,400ml,1.49
+fresh_mozzarella,🧀,dairy,250g,2.49
+basil,🌿,vegetable,1 bunch,1.29
+olive_oil,🫒,oil,500ml,3.99
+spaghetti,🍝,grain,500g,1.49
+eggs,🥚,protein,6 pcs,1.29
+guanciale,🥓,protein,150g,3.99
+pecorino_romano,🧀,dairy,100g,3.49
+black_pepper,🫙,spice,50g,1.29
+parsley,🌿,vegetable,1 bunch,0.79
+arborio_rice,🍚,grain,500g,2.49
+white_wine,🍷,liquid,375ml,3.99
+parmesan,🧀,dairy,100g,2.49
+lasagna_sheets,🍝,grain,500g,1.79
+ground_beef,🥩,protein,500g,4.49
+bechamel,🥛,condiment,500ml,1.99
+mozzarella,🧀,dairy,250g,2.29
+mascarpone,🧀,dairy,250g,2.99
+espresso,☕,liquid,100ml,2.49
+savoiardi,🍪,baking,200g,2.49
+cocoa_powder,🍫,baking,100g,1.99
+marsala,🍷,liquid,250ml,3.99
+veal_shank,🥩,protein,500g,8.99
+celery,🥬,vegetable,1 head,0.99
+gremolata,🌿,condiment,50g,1.49
+sourdough_bread,🍞,grain,1 loaf,2.99
+ripe_tomato,🍅,vegetable,500g,1.49
+balsamic,🍶,condiment,250ml,2.99
+cannellini_beans,🫘,grain,400g,1.49
+pasta,🍝,grain,500g,1.49
+zucchini,🥒,vegetable,3 pcs,1.49
+gelatin,🫙,baking,10g,1.29
+vanilla,🟡,baking,1 pod,2.99
+mixed_berries,🫐,fruit,300g,2.99
+lemon_zest,🍋,condiment,10g,0.49
+veal,🥩,protein,500g,8.99
+prosciutto,🥓,protein,100g,3.49
+sage,🌿,spice,1 bunch,1.29
+peas,🫛,vegetable,300g,1.29
+breadcrumbs,🍞,baking,200g,1.29
+pasta_water,💧,liquid,250ml,0.00
+rosemary,🌿,spice,1 bunch,1.29
+sea_salt_flakes,🧂,spice,100g,1.99
+kale,🥬,vegetable,250g,1.79
+bread,🍞,grain,1 loaf,1.99
+t_bone_steak,🥩,protein,500g,12.99
+pine_nuts,🌰,other,50g,3.49
+ricotta,🧀,dairy,250g,2.49
+powdered_sugar,🍬,baking,200g,0.99
+chocolate_chips,🍫,baking,200g,1.99
+orange_zest,🍊,condiment,10g,0.49
+pastry_shells,🥧,baking,6 pcs,2.99
+eggplant,🍆,vegetable,2 pcs,1.99
+olives,🫒,vegetable,200g,2.29
+capers,🫙,condiment,100g,1.99
+stale_bread,🍞,grain,300g,0.99
+red_onion,🧅,vegetable,3 pcs,1.29
+red_wine_vinegar,🍶,condiment,250ml,1.79
+bucatini,🍝,grain,500g,1.79
+pecorino,🧀,dairy,100g,3.49
+chili_flakes,🌶️,spice,50g,1.29
+cavolo_nero,🥬,vegetable,250g,1.99
+egg_yolks,🥚,protein,6 pcs,1.29
+marsala_wine,🍷,liquid,250ml,3.99
+berries,🫐,fruit,300g,2.99
+corn_tortilla,🌮,grain,12 pcs,1.99
+pineapple,🍍,fruit,1 pc,2.49
+achiote,🟠,spice,50g,1.79
+salsa_verde,🟢,condiment,200ml,1.99
+white_onion,🧅,vegetable,3 pcs,0.99
+red_enchilada_sauce,🌶️,condiment,400ml,2.49
+oaxaca_cheese,🧀,dairy,200g,3.49
+sour_cream,🥛,dairy,200ml,1.19
+poblano_pepper,🌶️,vegetable,3 pcs,1.49
+hominy,🌽,grain,400g,1.79
+dried_guajillo,🌶️,spice,50g,1.99
+oregano,🌿,spice,25g,0.99
+radish,🟢,vegetable,1 bunch,0.99
+masa_harina,🌽,grain,500g,1.99
+red_chile_sauce,🌶️,condiment,400ml,2.29
+lard,🐷,oil,250g,1.99
+corn_husks,🌽,other,20 pcs,1.49
+flour_tortilla,🌯,grain,8 pcs,1.99
+salsa,🍅,condiment,200ml,1.79
+turkey,🦃,protein,1kg,8.99
+dark_chocolate,🍫,baking,100g,2.49
+white_fish,🐟,protein,400g,5.99
+lime_juice,🍋,condiment,100ml,0.99
+serrano,🌶️,vegetable,3 pcs,0.69
+cinnamon,🟤,spice,50g,1.29
+chocolate_sauce,🍫,condiment,200ml,2.29
+tortilla_strips,🌮,grain,100g,1.49
+habanero,🌶️,vegetable,3 pcs,1.29
+orange_juice,🍊,liquid,500ml,1.99
+bay_leaf,🍃,spice,10g,0.99
+black_beans,🫘,grain,400g,1.29
+queso_fresco,🧀,dairy,150g,2.49
+corn,🌽,vegetable,3 pcs,1.49
+cotija_cheese,🧀,dairy,100g,2.99
+chili_powder,🌶️,spice,50g,1.29
+shredded_chicken,🍗,protein,300g,3.99
+cotija,🧀,dairy,100g,2.99
+achiote_paste,🟠,condiment,100g,1.99
+banana_leaf,🍃,other,3 pcs,1.49
+masa,🌽,grain,500g,1.99
+refried_beans,🫘,condiment,400g,1.49
+chorizo,🌭,protein,200g,2.99
+beef_tripe,🥩,protein,500g,3.99
+watermelon,🍉,fruit,1 pc,3.99
+cucumber_drink,🥒,vegetable,1 pc,0.69
+lime_zest,🍋,condiment,10g,0.49
+raisins,🟤,fruit,100g,1.29
+ground_pork,🐷,protein,400g,3.99
+fruit_filling,🍎,fruit,300g,2.49
+walnut_cream,🥜,condiment,200ml,2.99
+pomegranate,🔴,fruit,1 pc,2.49
+tostada_shell,🫓,grain,8 pcs,1.99
+tasajo,🥩,protein,300g,4.99
+pumpkin_seeds,🟢,other,100g,1.99
+tomatillo,🟢,vegetable,300g,1.79
+epazote,🌿,spice,1 bunch,1.29
+red_wine_vinegar_condiment,🍶,condiment,250ml,1.79
+red_burgundy,🍷,liquid,375ml,5.99
+button_mushrooms,🍄,vegetable,250g,1.99
+lardons,🥓,protein,150g,2.99
+pearl_onions,🧅,vegetable,200g,1.79
+thyme,🌿,spice,1 bunch,1.29
+beef_chuck,🥩,protein,800g,7.99
+pinot_noir,🍷,liquid,375ml,5.99
+cremini_mushrooms,🍄,vegetable,250g,2.29
+red_bell_pepper,🫑,vegetable,2 pcs,1.49
+herbes_de_provence,🌿,spice,25g,1.79
+heavy_cream,🥛,dairy,200ml,1.49
+vanilla_bean,🟡,baking,1 pod,3.99
+caramel,🍬,baking,100ml,1.99
+shortcrust_pastry,🥧,baking,400g,2.49
+gruyere,🧀,dairy,200g,3.99
+nutmeg,🟤,spice,1 pc,1.49
+yellow_onion,🧅,vegetable,3 pcs,0.99
+beef_stock,🍖,liquid,1L,2.49
+emmental,🧀,dairy,200g,3.49
+cognac,🥃,liquid,100ml,4.99
+mixed_fish,🐟,protein,500g,8.99
+mussels,🦪,protein,500g,4.99
+fennel,🌿,vegetable,1 pc,1.79
+rouille,🟠,condiment,100ml,2.49
+duck_legs,🦆,protein,500g,7.99
+duck_fat,🦆,oil,200g,4.99
+golden_apples,🍎,fruit,4 pcs,2.29
+puff_pastry,🥧,baking,400g,2.49
+beef_brisket,🥩,protein,800g,8.99
+bone_marrow,🦴,protein,300g,4.99
+leek,🥬,vegetable,2 pcs,1.49
+turnip,🟢,vegetable,2 pcs,1.29
+bouquet_garni,🌿,spice,1 pack,1.29
+sole_fillet,🐟,protein,300g,7.99
+crêpe_batter,🥞,baking,500ml,2.29
+grand_marnier,🍊,liquid,100ml,4.99
+white_beans,🫘,grain,400g,1.49
+duck_confit,🦆,protein,400g,8.99
+pork_sausage,🌭,protein,400g,3.49
+tomato_paste,🍅,condiment,200g,0.99
+beef_tenderloin,🥩,protein,300g,12.99
+egg_yolk,🥚,protein,1 pc,0.29
+cornichon,🥒,condiment,100g,1.79
+dijon_mustard,🟡,condiment,200g,1.99
+worcestershire,🥫,condiment,200ml,1.99
+egg_whites,🥚,protein,6 pcs,1.29
+crème_anglaise,🍮,dairy,250ml,2.49
+almond,🌰,other,100g,2.49
+chicken_broth,🍗,liquid,1L,2.49
+chives,🌿,vegetable,1 bunch,0.89
+dark_chocolate_bar,🍫,baking,100g,2.49
+pastry_shell,🥧,baking,1 pc,2.29
+pastry_cream,🍮,dairy,250ml,2.49
+strawberry,🍓,fruit,300g,2.99
+apricot_glaze,🟠,condiment,100ml,1.99
+choux_pastry,🥧,baking,400g,2.49
+beef_roast,🥩,protein,1kg,9.99
+celery_root,🥬,vegetable,1 pc,1.49
+cloves,🟤,spice,25g,1.29
+gingersnap,🍪,baking,100g,1.49
+bread_flour,🌾,baking,1kg,1.29
+baking_soda,🧂,baking,100g,0.79
+coarse_salt,🧂,spice,200g,1.29
+beer,🍺,liquid,500ml,1.49
+mustard,🟡,condiment,200g,1.49
+sauerkraut,🥬,vegetable,400g,1.79
+bread_roll,🍞,grain,4 pcs,1.29
+caraway,🌿,spice,50g,1.29
+spätzle,🍝,grain,500g,2.29
+caramelized_onion,🧅,vegetable,200g,1.79
+bacon,🥓,protein,200g,2.99
+pickle,🥒,condiment,200g,1.49
+red_wine,🍷,liquid,375ml,4.99
+chocolate_sponge,🍫,baking,1 pc,3.49
+whipped_cream,🥛,dairy,250ml,1.49
+cherry,🍒,fruit,200g,2.99
+kirschwasser,🍒,liquid,100ml,4.99
+chocolate_shavings,🍫,baking,50g,1.49
+pasta_dough,🍝,baking,400g,1.99
+marjoram,🌿,spice,1 bunch,0.99
+thin_dough,🍕,baking,400g,1.79
+crème_fraîche,🥛,dairy,200ml,1.79
+pork_knuckle,🍖,protein,1kg,6.99
+apple,🍎,fruit,3 pcs,1.49
+juniper_berry,🟣,spice,25g,1.99
+strudel_dough,🥧,baking,400g,2.29
+vanilla_cream,🍮,dairy,250ml,2.29
+yeast_dough,🍞,baking,500g,1.99
+honey_almond_topping,🍯,baking,200g,2.99
+streusel_topping,🍪,baking,200g,1.79
+gingerbread,🍪,baking,100g,1.79
+ground_veal,🥩,protein,500g,6.99
+anchovy,🐟,protein,50g,1.99
+cream_sauce,🥛,condiment,250ml,1.99
+corned_beef,🥩,protein,400g,3.99
+beetroot,🔴,vegetable,300g,1.49
+pickled_herring,🐟,protein,200g,2.99
+peppercorn,🫙,spice,50g,1.49
+roasted_peanuts,🥜,other,100g,1.69
+tamarind_paste,🟤,condiment,200g,1.99
+green_curry_paste,🟢,condiment,200g,2.49
+thai_basil,🌿,vegetable,1 bunch,1.29
+lime_leaves,🍃,spice,10g,1.29
+kaffir_lime_leaves,🍃,spice,10g,1.29
+straw_mushrooms,🍄,vegetable,200g,2.29
+bird_eye_chili,🌶️,vegetable,50g,0.99
+green_papaya,🟢,vegetable,1 pc,2.49
+dried_shrimp,🦐,protein,50g,2.49
+palm_sugar,🟤,baking,200g,1.49
+massaman_paste,🌶️,condiment,200g,2.99
+pearl_onion,🧅,vegetable,200g,1.79
+jasmine_rice,🍚,grain,500g,1.99
+spring_onion,🧅,vegetable,1 bunch,0.89
+white_pepper,🫙,spice,50g,1.29
+wide_rice_noodles,🍜,grain,400g,1.89
+chinese_broccoli,🥦,vegetable,250g,1.79
+dark_soy_sauce,🥫,condiment,250ml,2.29
+oyster_sauce,🦪,condiment,250ml,1.99
+glutinous_rice,🍚,grain,500g,2.29
+ripe_mango,🥭,fruit,2 pcs,2.99
+pandan_leaf,🌿,spice,5 pcs,1.29
+oyster_mushroom,🍄,vegetable,200g,2.49
+holy_basil,🌿,vegetable,1 bunch,1.49
+red_curry_paste,🔴,condiment,200g,2.49
+khao_soi_paste,🌶️,condiment,200g,2.99
+pickled_mustard,🟡,condiment,200g,1.79
+crispy_noodles,🍜,grain,100g,1.49
+coriander_root,🌿,spice,50g,1.29
+egg_noodles,🍜,grain,400g,1.69
+oyster,🦪,protein,300g,7.99
+rice_flour,🌾,baking,500g,1.49
+tapioca_flour,🌾,baking,500g,1.49
+sriracha,🌶️,condiment,250ml,2.29
+pandan,🌿,spice,5 pcs,1.29
+corn_kernels,🌽,vegetable,200g,1.29
+grilled_pork,🐷,protein,300g,4.49
+toasted_rice_powder,🍚,spice,50g,1.29
+white_turmeric,🟡,spice,50g,1.79
+vegetables,🥕,vegetable,500g,2.29
+shrimp_paste,🦐,condiment,50g,1.99
+fish,🐟,protein,400g,5.49
+green_bean,🟢,vegetable,200g,1.49
+sweet_chili_sauce,🌶️,condiment,250ml,1.99
+glutinous_rice_flour,🌾,baking,500g,1.49
+taro,🟤,vegetable,300g,1.99
+ground_lamb,🐑,protein,500g,6.99
+tahini,🫙,condiment,200g,2.99
+paprika,🔴,spice,50g,1.29
+dried_chickpeas,🫘,grain,500g,1.79
+fresh_parsley,🌿,vegetable,1 bunch,0.79
+fine_bulgur,🌾,grain,500g,1.79
+flat_leaf_parsley,🌿,vegetable,1 bunch,0.79
+bomba_rice,🍚,grain,500g,3.49
+prawn,🦐,protein,300g,6.99
+mussel,🦪,protein,500g,4.49
+smoked_paprika,🔴,spice,50g,1.79
+garlic_sauce,🧄,condiment,200ml,1.99
+pita,🫓,grain,4 pcs,1.49
+sumac,🔴,spice,50g,1.79
+feta,🧀,dairy,200g,2.49
+phyllo_dough,🥧,baking,400g,2.49
+dill,🌿,spice,1 bunch,0.89
+greek_yogurt,🥛,dairy,200g,1.29
+fresh_dill,🌿,spice,1 bunch,0.89
+walnuts,🥜,other,100g,2.49
+dried_oregano,🌿,spice,25g,0.99
+tzatziki,🥒,condiment,200ml,1.99
+bulgur,🌾,grain,500g,1.79
+allspice,🟤,spice,50g,1.49
+red_bell_pepper_vegetable,🫑,vegetable,2 pcs,1.49
+romaine,🥬,vegetable,1 head,1.29
+pita_chips,🫓,grain,200g,1.99
+grape_leaves,🍃,other,30 pcs,2.49
+strained_yogurt,🥛,dairy,200g,1.49
+zaatar,🌿,spice,50g,1.99
+fresh_mint,🌿,vegetable,1 bunch,0.89
+semolina,🌾,grain,500g,1.49
+merguez,🌭,protein,300g,3.99
+root_vegetables,🥕,vegetable,500g,2.29
+harissa,🌶️,condiment,200g,2.49
+ras_el_hanout,🌿,spice,50g,2.49
+bread_dough,🍞,baking,400g,1.79
+nigella_seeds,⚫,spice,50g,1.29
+lamb_shoulder,🐑,protein,800g,9.99
+sherry_vinegar,🍶,condiment,250ml,2.99
+walnut,🥜,other,100g,2.49
+black_olives,🫒,vegetable,200g,2.29
+dijon_vinaigrette,🟡,condiment,200ml,2.29
+cherry_tomato,🍅,vegetable,250g,1.79
+black_pudding,🟤,protein,200g,2.99
+oatmeal,🌾,grain,500g,1.29
+smoked_pork,🐷,protein,300g,4.49
+pinkel_sausage,🌭,protein,300g,3.49
+apple_sauce,🍎,condiment,200ml,1.29
+clarified_butter,🧈,dairy,200g,3.49
+pepper,🫙,spice,50g,1.29
+yellow_squash,🟡,vegetable,2 pcs,1.49
+red_pepper,🫑,vegetable,2 pcs,1.49
+black_pepper_spice,🫙,spice,50g,1.29
+sugar_glaze,🍬,baking,100ml,1.29
+candied_peel,🍊,baking,100g,1.99
+bone_broth,🍖,liquid,1L,2.49
+carrots,🥕,vegetable,500g,0.99
+cashew,🥜,other,100g,2.49
+coconut_chutney,🥥,condiment,200ml,1.99
+dry_white_wine,🍷,liquid,375ml,3.99
+green_beans,🟢,vegetable,200g,1.49
+pea_eggplant,🟢,vegetable,200g,2.49
+ranchero_sauce,🌶️,condiment,400ml,2.29
+risotto_rice,🍚,grain,500g,2.49
+sambar,🍛,condiment,200ml,1.99
+star_anise,⭐,spice,25g,1.49
+tortilla,🌮,grain,8 pcs,1.99

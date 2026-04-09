@@ -1,6 +1,6 @@
 "use client";
 
-import { IconSparkles, IconX } from "@tabler/icons-react";
+import { IconLoader2, IconSparkles, IconX } from "@tabler/icons-react";
 import { Button } from "@workspace/ui/components/button";
 import {
   Carousel,
@@ -11,195 +11,64 @@ import {
 } from "@workspace/ui/components/carousel";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { type Recipe, fetchRecipes } from "@/lib/api";
 import { useCart } from "../cart-context";
 
-type Dish = {
-  id: number;
-  name: string;
-  description: string;
-  emoji: string;
+const ACCENT_COLORS = [
+  "bg-[var(--color-default-secondary)]",
+  "bg-[var(--color-diary-secondary)]",
+  "bg-[var(--color-vegtables-secondary)]",
+  "bg-[var(--color-meat-secondary)]",
+  "bg-[var(--color-non-food-secondary)]",
+];
+
+function accentForIndex(i: number): string {
+  return ACCENT_COLORS[i % ACCENT_COLORS.length] ?? "bg-[var(--color-default-secondary)]";
+}
+
+function DishCard({
+  recipe,
+  accent,
+  onAdd,
+}: {
+  recipe: Recipe;
   accent: string;
-};
-
-const recommended: Dish[] = [
-  {
-    id: 1,
-    name: "Creamy Pasta Carbonara",
-    description: "Classic Italian comfort",
-    emoji: "🍝",
-    accent: "bg-[var(--color-default-secondary)]",
-  },
-  {
-    id: 2,
-    name: "Grilled Salmon",
-    description: "With lemon butter sauce",
-    emoji: "🐟",
-    accent: "bg-[var(--color-diary-secondary)]",
-  },
-  {
-    id: 3,
-    name: "Avocado Toast",
-    description: "Poached egg & chili flakes",
-    emoji: "🥑",
-    accent: "bg-[var(--color-vegtables-secondary)]",
-  },
-  {
-    id: 4,
-    name: "Beef Tacos",
-    description: "With fresh salsa & guac",
-    emoji: "🌮",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 5,
-    name: "Caesar Salad",
-    description: "Crispy romaine & croutons",
-    emoji: "🥗",
-    accent: "bg-[var(--color-vegtables-secondary)]",
-  },
-  {
-    id: 6,
-    name: "Margherita Pizza",
-    description: "San Marzano tomatoes",
-    emoji: "🍕",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 7,
-    name: "Sushi Platter",
-    description: "Chef's selection",
-    emoji: "🍣",
-    accent: "bg-[var(--color-diary-secondary)]",
-  },
-];
-
-const popularNow: Dish[] = [
-  {
-    id: 8,
-    name: "Smash Burger",
-    description: "Double patty & secret sauce",
-    emoji: "🍔",
-    accent: "bg-[var(--color-default-secondary)]",
-  },
-  {
-    id: 9,
-    name: "Ramen Bowl",
-    description: "Tonkotsu broth, soft egg",
-    emoji: "🍜",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 10,
-    name: "Poke Bowl",
-    description: "Ahi tuna & sesame",
-    emoji: "🥣",
-    accent: "bg-[var(--color-diary-secondary)]",
-  },
-  {
-    id: 11,
-    name: "BBQ Ribs",
-    description: "Slow-smoked for 12 hours",
-    emoji: "🍖",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 12,
-    name: "Pad Thai",
-    description: "Wok-fried rice noodles",
-    emoji: "🍜",
-    accent: "bg-[var(--color-default-secondary)]",
-  },
-  {
-    id: 13,
-    name: "Shakshuka",
-    description: "Eggs in spiced tomato",
-    emoji: "🍳",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 14,
-    name: "Greek Bowl",
-    description: "Falafel, tzatziki & pita",
-    emoji: "🧆",
-    accent: "bg-[var(--color-vegtables-secondary)]",
-  },
-];
-
-const indianCuisine: Dish[] = [
-  {
-    id: 15,
-    name: "Butter Chicken",
-    description: "Creamy tomato masala",
-    emoji: "🍛",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 16,
-    name: "Palak Paneer",
-    description: "Spinach & cottage cheese",
-    emoji: "🌿",
-    accent: "bg-[var(--color-vegtables-secondary)]",
-  },
-  {
-    id: 17,
-    name: "Biryani",
-    description: "Fragrant basmati & saffron",
-    emoji: "🍚",
-    accent: "bg-[var(--color-default-secondary)]",
-  },
-  {
-    id: 18,
-    name: "Samosa",
-    description: "Crispy potato & pea filling",
-    emoji: "🔺",
-    accent: "bg-[var(--color-default-secondary)]",
-  },
-  {
-    id: 19,
-    name: "Dal Makhani",
-    description: "Slow-cooked black lentils",
-    emoji: "🫘",
-    accent: "bg-[var(--color-meat-secondary)]",
-  },
-  {
-    id: 20,
-    name: "Naan Bread",
-    description: "Tandoor-baked, garlic butter",
-    emoji: "🫓",
-    accent: "bg-[var(--color-non-food-secondary)]",
-  },
-  {
-    id: 21,
-    name: "Mango Lassi",
-    description: "Chilled yogurt & mango",
-    emoji: "🥭",
-    accent: "bg-[var(--color-diary-secondary)]",
-  },
-];
-
-function DishCard({ dish }: { dish: Dish }) {
+  onAdd: () => void;
+}) {
   return (
-    <div className="group cursor-pointer">
+    <button type="button" onClick={onAdd} className="group w-full text-left">
       <div
-        className={`${dish.accent} relative flex aspect-square w-full items-center justify-center rounded-xl text-8xl ring-1 ring-border transition-transform duration-200 group-hover:scale-105`}
+        className={`${accent} relative flex aspect-square w-full items-center justify-center rounded-xl text-8xl ring-1 ring-border transition-transform duration-200 group-hover:scale-105`}
       >
-        <span>{dish.emoji}</span>
+        <span>{recipe.emoji}</span>
       </div>
       <div className="mt-3 px-0.5">
         <p className="truncate text-base font-medium text-foreground">
-          {dish.name}
+          {recipe.dish.replace(/_/g, " ")}
         </p>
         <p className="truncate text-sm text-muted-foreground">
-          {dish.description}
+          {recipe.ingredients.length} ingredients &middot;{" "}
+          &euro;
+          {recipe.ingredients
+            .reduce((s, i) => s + i.default_price, 0)
+            .toFixed(2)}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
 
-function DishRow({ title, dishes }: { title: string; dishes: Dish[] }) {
+function DishRow({
+  title,
+  recipes,
+  onAdd,
+}: {
+  title: string;
+  recipes: Recipe[];
+  onAdd: (recipe: Recipe) => void;
+}) {
   return (
     <section className="px-8 sm:px-16">
       <h2 className="mb-4 text-xl font-semibold text-foreground">{title}</h2>
@@ -208,12 +77,16 @@ function DishRow({ title, dishes }: { title: string; dishes: Dish[] }) {
           className="py-2"
           viewportClassName="[mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         >
-          {dishes.map((dish) => (
+          {recipes.map((recipe, i) => (
             <CarouselItem
-              key={dish.id}
+              key={recipe.id}
               className="basis-3/5 sm:basis-2/5 md:basis-1/3 lg:basis-1/4"
             >
-              <DishCard dish={dish} />
+              <DishCard
+                recipe={recipe}
+                accent={accentForIndex(i)}
+                onAdd={() => onAdd(recipe)}
+              />
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -275,16 +148,35 @@ export default function BrowsePage() {
     confirmBasket,
     dismissNotification,
     setToastDismissed,
+    addRecipe,
   } = useCart();
   const router = useRouter();
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (items.length === 0 && !notification && !hasPendingPrediction) {
-      const timer = setTimeout(() => predictBasket(), 600);
+    fetchRecipes()
+      .then(setRecipes)
+      .catch((e) => {
+        console.error("Failed to fetch recipes:", e);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Trigger prediction once recipes are loaded and cart is empty.
+  useEffect(() => {
+    if (
+      recipes.length > 0 &&
+      items.length === 0 &&
+      !notification &&
+      !hasPendingPrediction
+    ) {
+      const timer = setTimeout(() => predictBasket(recipes), 600);
       return () => clearTimeout(timer);
     }
-  }, [items.length, notification, hasPendingPrediction, predictBasket]);
+  }, [recipes, items.length, notification, hasPendingPrediction, predictBasket]);
 
+  // Show the Picky toast when a notification arrives.
   useEffect(() => {
     if (notification) {
       dismissNotification();
@@ -310,10 +202,28 @@ export default function BrowsePage() {
         },
         () => setToastDismissed(true),
       );
-    } else {
-      predictBasket();
+    } else if (recipes.length > 0) {
+      predictBasket(recipes);
     }
   };
+
+  const handleAdd = (recipe: Recipe) => {
+    addRecipe(recipe.dish.replace(/_/g, " "), recipe.ingredients);
+    toast.success(
+      `${recipe.emoji} ${recipe.dish.replace(/_/g, " ")} added to cart!`,
+    );
+  };
+
+  // Group recipes by region.
+  const byRegion: Record<string, Recipe[]> = {};
+  for (const r of recipes) {
+    if (!byRegion[r.region]) {
+      byRegion[r.region] = [];
+    }
+    byRegion[r.region]?.push(r);
+  }
+
+  const regions = Object.keys(byRegion);
 
   return (
     <div className="min-h-screen bg-background py-10">
@@ -326,11 +236,26 @@ export default function BrowsePage() {
         )}
       </header>
 
-      <div className="flex flex-col gap-16">
-        <DishRow title="Recommended for You" dishes={recommended} />
-        <DishRow title="Popular Right Now" dishes={popularNow} />
-        <DishRow title="Indian Cuisine" dishes={indianCuisine} />
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : recipes.length === 0 ? (
+        <div className="px-8 text-center text-muted-foreground sm:px-16">
+          No recipes available. Make sure the backend is running.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-16">
+          {regions.map((region) => (
+            <DishRow
+              key={region}
+              title={region}
+              recipes={byRegion[region] ?? []}
+              onAdd={handleAdd}
+            />
+          ))}
+        </div>
+      )}
 
       {toastDismissed && (
         <button
