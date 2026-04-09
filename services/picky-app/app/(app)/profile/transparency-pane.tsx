@@ -20,13 +20,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Separator } from "@workspace/ui/components/separator";
 import { Textarea } from "@workspace/ui/components/textarea";
-import {
-  Progress,
-  ProgressTrack,
-  ProgressIndicator,
-  ProgressLabel,
-  ProgressValue,
-} from "@workspace/ui/components/progress";
 import type { Profile } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -81,7 +74,7 @@ type HabitRule = {
 const HABIT_RULES: HabitRule[] = [
   {
     keywords: ["bulk", "protein", "muscle", "gym", "gains", "lift", "lifting"],
-    delta: { beef: 25, fish: 20 },
+    delta: { beef: 30, pork: 28, fish: -8, dairy: 18, spicy: 12 },
     profile: { health_goal: "high-protein" },
   },
   {
@@ -220,21 +213,27 @@ const AFFINITY_META = [
   { key: "spicy" as const, label: "Spicy", emoji: "🌶️" },
 ];
 
-function AffinityBar({ value, highlight }: { value: number; highlight?: "up" | "down" }) {
+function AffinityBar({
+  value,
+  direction,
+}: {
+  value: number;
+  direction?: "up" | "down";
+}) {
   return (
-    <Progress value={value} className="gap-0">
-      <ProgressTrack className="h-2">
-        <ProgressIndicator
-          className={
-            highlight === "up"
-              ? "bg-green-500 transition-all duration-700"
-              : highlight === "down"
-                ? "bg-red-400 transition-all duration-700"
-                : "transition-all duration-700"
-          }
-        />
-      </ProgressTrack>
-    </Progress>
+    <div className="w-full h-2 rounded-full bg-neutral-200 overflow-hidden">
+      <div
+        className={[
+          "h-full rounded-full transition-all duration-700",
+          direction === "up"
+            ? "bg-green-500"
+            : direction === "down"
+              ? "bg-red-500"
+              : "bg-neutral-400",
+        ].join(" ")}
+        style={{ width: `${value}%` }}
+      />
+    </div>
   );
 }
 
@@ -397,7 +396,7 @@ export function TransparencyPane({ user }: { user: Profile }) {
               const raw = DEMO_PREFERENCES[key];
               const simVal = simulatedAffinity?.[key];
               const displayVal = simVal ?? raw;
-              const highlight =
+              const direction =
                 simVal !== undefined
                   ? simVal > raw
                     ? "up"
@@ -452,7 +451,7 @@ export function TransparencyPane({ user }: { user: Profile }) {
                       )}
                     </div>
                   </div>
-                  <AffinityBar value={displayVal} highlight={highlight} />
+                  <AffinityBar value={displayVal} direction={direction} />
                   {isActive && (
                     <InlineFlagForm
                       dimension={flagId}
@@ -622,67 +621,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
           )}
 
           {hasSimulationOutput && (
-            <div className="flex flex-col gap-3 rounded-lg bg-muted/50 p-3 mt-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Vector Impact (simulated)
-              </p>
-
-              {simulationResult!.affinityDeltas.map((d) => (
-                <div key={d.key} className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <span>{d.emoji}</span>
-                      <span>{d.label}</span>
-                    </span>
-                    <span className="text-xs tabular-nums flex items-center gap-1">
-                      <span className="text-muted-foreground">{d.oldVal}%</span>
-                      <span className="text-muted-foreground">→</span>
-                      <span
-                        className={
-                          d.newVal > d.oldVal ? "text-green-600 font-medium" : "text-red-500 font-medium"
-                        }
-                      >
-                        {d.newVal}%
-                      </span>
-                      {d.newVal > d.oldVal ? (
-                        <IconArrowUp className="size-3 text-green-600" />
-                      ) : (
-                        <IconArrowDown className="size-3 text-red-400" />
-                      )}
-                    </span>
-                  </div>
-                  <AffinityBar
-                    value={d.newVal}
-                    highlight={d.newVal > d.oldVal ? "up" : "down"}
-                  />
-                </div>
-              ))}
-
-              {simulationResult!.profileDeltas.map((d) => (
-                <div key={d.key} className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{d.label}</span>
-                  <span className="flex items-center gap-1.5 text-xs">
-                    <Badge variant="outline" className="line-through opacity-50">
-                      {d.oldVal}
-                    </Badge>
-                    <span>→</span>
-                    <Badge variant="default">{d.newVal}</Badge>
-                  </span>
-                </div>
-              ))}
-
-              {simulationResult!.newRestrictions.map((r) => (
-                <div key={r} className="flex items-center justify-between">
-                  <span className="text-muted-foreground">New restriction</span>
-                  <Badge variant="destructive" className="text-xs">
-                    + {r}
-                  </Badge>
-                </div>
-              ))}
-
-              <p className="text-xs text-muted-foreground italic mt-1">
-                Picky has noted this — use flags above to correct specific signals.
-              </p>
+            <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium mt-1 self-start">
+              <IconArrowUp className="size-3.5" />
+              <span>See impact above</span>
             </div>
           )}
         </CardContent>
