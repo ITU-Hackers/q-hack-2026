@@ -1113,6 +1113,8 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "skl2onnx" },
     { name = "tensorflow" },
+    { name = "tensorflow-recommenders", version = "0.7.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "tensorflow-recommenders", version = "0.7.7", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 's390x' or sys_platform == 'emscripten' or sys_platform == 'win32'" },
     { name = "tf-keras" },
     { name = "tf2onnx" },
 ]
@@ -1135,6 +1137,7 @@ requires-dist = [
     { name = "scikit-learn" },
     { name = "skl2onnx" },
     { name = "tensorflow" },
+    { name = "tensorflow-recommenders" },
     { name = "tf-keras" },
     { name = "tf2onnx" },
 ]
@@ -1744,6 +1747,55 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/72/72/343b86b4c9bfe28e81f749439f908c1e26aeac73d9f12b8dcdb996eb8ecb/tensorflow-2.21.0-cp313-cp313-manylinux_2_27_aarch64.whl", hash = "sha256:a10abdfb8b1189210c251021a3f153b7ccc52a8e6521351f3dc3331e8ba593e0", size = 282213003, upload-time = "2026-03-06T17:24:59.859Z" },
     { url = "https://files.pythonhosted.org/packages/86/6c/10d075ffc09754c7f10e749ba3c9d46dd809fb007990c7f788128044180c/tensorflow-2.21.0-cp313-cp313-manylinux_2_27_x86_64.whl", hash = "sha256:e9d8da8dcab9650efb45f032ba70af2f016f907e6e0c6bda29dd101bba945406", size = 572881074, upload-time = "2026-03-06T17:25:14.453Z" },
     { url = "https://files.pythonhosted.org/packages/86/91/dedad8403e7b0036d99be4878987693b7b7f62097eb8537fa6ce62ea131c/tensorflow-2.21.0-cp313-cp313-win_amd64.whl", hash = "sha256:76cccbe0a95d9392dee1ae501ae0656b6c73c1cac29a7f8f32d570e0670863f7", size = 351205371, upload-time = "2026-03-06T17:25:33.144Z" },
+]
+
+[[package]]
+name = "tensorflow-macos"
+version = "2.16.2"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "tensorflow-recommenders"
+version = "0.7.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.13' and platform_machine != 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.13' and platform_machine != 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "absl-py", marker = "platform_machine != 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "tensorflow", marker = "platform_machine != 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/76/bc/44a89ab491973736eba5fb667c59c46437b483c465b9bcde3dbcaed500e8/tensorflow-recommenders-0.7.2.tar.gz", hash = "sha256:67904def15ef9ff1ba5b9ca96ca32845ec54ec41b5be24e80883ad2bea8abc4b", size = 59848, upload-time = "2022-09-29T22:04:11.432Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/3a/5f0c0c04fc69a95231829f4cc9d93f2109b5a2e0f84f5c15ff4a828a19a7/tensorflow_recommenders-0.7.2-py3-none-any.whl", hash = "sha256:3f7cd18e63ade94d5c2c9e5ec35243f41905f713966dd2c9d76a14c48fd7e746", size = 89262, upload-time = "2022-09-29T22:04:10.095Z" },
+]
+
+[[package]]
+name = "tensorflow-recommenders"
+version = "0.7.7"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.13' and platform_machine != 's390x' and sys_platform == 'win32'",
+    "python_full_version >= '3.13' and platform_machine == 's390x' and sys_platform == 'win32'",
+    "python_full_version >= '3.13' and platform_machine != 's390x' and sys_platform == 'emscripten'",
+    "python_full_version >= '3.13' and platform_machine == 's390x' and sys_platform == 'emscripten'",
+    "python_full_version >= '3.13' and platform_machine == 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.13' and platform_machine != 's390x' and sys_platform == 'win32'",
+    "python_full_version < '3.13' and platform_machine == 's390x' and sys_platform == 'win32'",
+    "python_full_version < '3.13' and platform_machine != 's390x' and sys_platform == 'emscripten'",
+    "python_full_version < '3.13' and platform_machine == 's390x' and sys_platform == 'emscripten'",
+    "python_full_version < '3.13' and platform_machine == 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "absl-py", marker = "platform_machine == 's390x' or sys_platform == 'emscripten' or sys_platform == 'win32'" },
+    { name = "tensorflow", marker = "(platform_machine == 's390x' and sys_platform != 'darwin') or sys_platform == 'emscripten' or sys_platform == 'win32'" },
+    { name = "tensorflow-macos", marker = "platform_machine == 's390x' and sys_platform == 'darwin'" },
+    { name = "tf-keras", marker = "platform_machine == 's390x' or sys_platform == 'emscripten' or sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/dc/d39615d47d0bc286db2661bd7e094fdb0a8c9894d92d6aa83bc8cdf5b766/tensorflow_recommenders-0.7.7.tar.gz", hash = "sha256:ae9084eb35dbdd232d61e02a1470cbbc5dddb78028756257ca320823b6620435", size = 68425, upload-time = "2026-01-23T01:39:36.392Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8e/b5/feb1af92e9db84380b0c43ee78ff6a0424c686251c8e54bdfeba69c0fa4c/tensorflow_recommenders-0.7.7-py3-none-any.whl", hash = "sha256:f20c098879a7e3c4343ea5bc257adf80e6cb63ca139e53ffab46f8eb617915db", size = 108888, upload-time = "2026-01-23T01:39:34.835Z" },
 ]
 
 [[package]]

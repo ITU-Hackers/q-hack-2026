@@ -4,7 +4,7 @@ from picky_recs.assets.recipes import recipe_collection, recipe_vectors
 
 training_job = define_asset_job(
     name="training_job",
-    selection=AssetSelection.assets("customer_vectors", "recipe_vectors", "training_data", "trained_model"),
+    selection=AssetSelection.assets("customer_vectors", "recipe_vectors", "trained_model"),
     description="Train the two-tower recommendation model and upload the user tower to S3.",
 )
 

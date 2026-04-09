@@ -1,17 +1,23 @@
 """Dagster assets for the ML training pipeline.
 
-Trains a MLPRegressor user-tower that maps 128-dimensional profile feature
-vectors (matching picky-api's profile_features module) to 100-dimensional
-embeddings, and exports the model in ONNX format for cross-language inference.
+Trains a two-tower model (UserTower → 100-dim meal embedding space) using
+TensorFlow Recommenders' in-batch softmax retrieval loss, and exports the user
+tower in ONNX format for cross-language inference in picky-api.
 """
 
 import os
 import tempfile
 from pathlib import Path
 
+# Must be set before TensorFlow is imported.
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
 import numpy as np
 import pandas as pd
 import psycopg2
+import tensorflow as tf
+import tensorflow_recommenders as tfrs
+import tf2onnx
 from botocore.exceptions import ClientError
 from dagster import (
     AssetExecutionContext,
@@ -20,16 +26,16 @@ from dagster import (
     asset,
 )
 from dagster_aws.s3 import S3Resource
-from skl2onnx import convert_sklearn
-from skl2onnx.common.data_types import FloatTensorType
-from sklearn.neural_network import MLPRegressor
+from qdrant_client import QdrantClient
 
-__all__ = ["customer_vectors", "training_data", "trained_model"]
+__all__ = ["customer_vectors", "trained_model"]
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "picky-models")
 S3_MODEL_KEY = os.environ.get("S3_MODEL_KEY", "models/picky-recs/model.onnx")
 
-_DEFAULT_TRAINING_DB_URL = "postgresql://picky:Password123@postgres.picky.local:5432/training"
+_DEFAULT_TRAINING_DB_URL = (
+    "postgresql://picky:Password123@postgres.picky.local:5432/training"
+)
 
 # Must match picky-api/src/profile_features.rs (OUT_DIMS = 128)
 # and picky-api/src/model.rs (embed_user output = 100).
@@ -41,8 +47,23 @@ _RAW_DIMS = 29
 _HEALTH_GOALS = ["balanced", "mediterranean", "high-protein"]
 _COOKING_TIMES = ["quick", "moderate", "enthusiast"]
 _BUDGETS = ["budget", "moderate", "flexible"]
-_CUISINES = ["Asian", "Italian", "French", "Mexican", "Indian", "Mediterranean", "American"]
-_RESTRICTIONS = ["nut-allergy", "gluten-free", "vegan", "vegetarian", "dairy-free", "halal"]
+_CUISINES = [
+    "Asian",
+    "Italian",
+    "French",
+    "Mexican",
+    "Indian",
+    "Mediterranean",
+    "American",
+]
+_RESTRICTIONS = [
+    "nut-allergy",
+    "gluten-free",
+    "vegan",
+    "vegetarian",
+    "dairy-free",
+    "halal",
+]
 
 _ASSETS_DIR = Path(__file__).parent
 _SERVICE_DIR = _ASSETS_DIR.parents[1]
@@ -51,33 +72,32 @@ _FOOD2VEC_PATH = str(_SERVICE_DIR / "picky_recs" / "data" / "food2vec.txt")
 # Ingredients in the food2vec vocabulary that map to each preference/cuisine/goal.
 # Keys must match food2vec.txt exactly (lowercase, single-word or underscore-joined).
 _PREF_INGREDIENTS: dict[str, list[str]] = {
-    "fish":  ["salmon", "tuna", "cod", "shrimp"],
-    "pork":  ["pork", "bacon", "ham", "sausage"],
-    "beef":  ["beef", "lamb", "turkey"],
+    "fish": ["salmon", "tuna", "cod", "shrimp"],
+    "pork": ["pork", "bacon", "ham", "sausage"],
+    "beef": ["beef", "lamb", "turkey"],
     "dairy": ["cheese", "milk", "butter", "yogurt"],
     "spicy": ["chili", "jalapeno", "ginger", "cumin", "coriander"],
 }
 _HEALTH_GOAL_INGREDIENTS: dict[str, list[str]] = {
-    "balanced":      ["chicken", "tomato", "rice", "spinach", "eggs"],
+    "balanced": ["chicken", "tomato", "rice", "spinach", "eggs"],
     "mediterranean": ["olive", "feta", "tomato", "lemon", "eggplant"],
-    "high-protein":  ["chicken", "eggs", "turkey", "tuna", "beef"],
+    "high-protein": ["chicken", "eggs", "turkey", "tuna", "beef"],
 }
 _CUISINE_INGREDIENTS: dict[str, list[str]] = {
-    "Asian":         ["rice", "ginger", "soy", "noodles", "miso"],
-    "Italian":       ["pasta", "tomato", "cheese", "olive"],
-    "French":        ["butter", "mushroom", "lemon"],
-    "Mexican":       ["chili", "jalapeno", "tomato"],
-    "Indian":        ["cumin", "coriander", "curry", "chickpeas", "lentils"],
+    "Asian": ["rice", "ginger", "soy", "noodles", "miso"],
+    "Italian": ["pasta", "tomato", "cheese", "olive"],
+    "French": ["butter", "mushroom", "lemon"],
+    "Mexican": ["chili", "jalapeno", "tomato"],
+    "Indian": ["cumin", "coriander", "curry", "chickpeas", "lentils"],
     "Mediterranean": ["olive", "feta", "tomato", "eggplant"],
-    "American":      ["beef", "bacon", "cheese"],
+    "American": ["beef", "bacon", "cheese"],
 }
 _RESTRICTION_INGREDIENTS: dict[str, list[str]] = {
-    "vegan":       ["tofu", "lentils", "chickpeas", "spinach", "kale"],
-    "vegetarian":  ["tofu", "eggs", "cheese", "mushrooms", "lentils"],
+    "vegan": ["tofu", "lentils", "chickpeas", "spinach", "kale"],
+    "vegetarian": ["tofu", "eggs", "cheese", "mushrooms", "lentils"],
     "gluten-free": ["rice", "spinach", "tomato", "eggs"],
-    "dairy-free":  ["lemon", "olive", "spinach", "tomato"],
+    "dairy-free": ["lemon", "olive", "spinach", "tomato"],
 }
-
 
 VECTOR_FEATURE_NAMES = [
     "spend_trend",
@@ -94,8 +114,6 @@ VECTOR_FEATURE_NAMES = [
     "snacks_fraction",
 ]
 
-
-# ── Feature engineering helpers (Python port of profile_features.rs) ──────────
 
 def _proj(i: int, j: int) -> float:
     """Deterministic projection value for matrix element M[i][j].
@@ -248,9 +266,9 @@ def _profile_target(
 
     # Ingredient preference dimensions — weight proportional to preference value
     for key, pref in [
-        ("fish",  pref_fish),
-        ("pork",  pref_pork),
-        ("beef",  pref_beef),
+        ("fish", pref_fish),
+        ("pork", pref_pork),
+        ("beef", pref_beef),
         ("dairy", pref_dairy),
         ("spicy", pref_spicy),
     ]:
@@ -283,7 +301,79 @@ def _profile_target(
     return accum
 
 
-# ── Dagster assets ─────────────────────────────────────────────────────────────
+class UserTower(tf.keras.Model):
+    """Projects a 128-dim user profile vector into the 100-dim meal embedding space."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.dense = tf.keras.Sequential(
+            [
+                tf.keras.layers.Dense(256, activation="relu"),
+                tf.keras.layers.Dense(128, activation="relu"),
+                tf.keras.layers.Dense(EMBEDDING_DIM),
+            ]
+        )
+
+    def call(self, user_vector: tf.Tensor) -> tf.Tensor:  # type: ignore[override]
+        return self.dense(user_vector)
+
+
+class MealTower(tf.keras.Model):
+    """Passthrough — meal embeddings from food2vec/Qdrant are used as-is."""
+
+    def call(self, meal_embedding: tf.Tensor) -> tf.Tensor:  # type: ignore[override]
+        return meal_embedding
+
+
+class MealRecommender(tfrs.Model):
+    """Two-tower retrieval model trained with TFRS in-batch softmax loss.
+
+    compute_loss pairs each (user_vector, meal_embedding) in the batch as a
+    positive example and treats all other meal embeddings in the same batch as
+    negatives — this is the standard in-batch sampled-softmax retrieval loss
+    from the TFRS Retrieval task.
+   """
+
+    def __init__(self, meals_dataset: tf.data.Dataset) -> None:
+        super().__init__()
+        self.user_tower = UserTower()
+        self.meal_tower = MealTower()
+        self.task: tfrs.tasks.Retrieval = tfrs.tasks.Retrieval(
+            metrics=tfrs.metrics.FactorizedTopK(
+                candidates=meals_dataset.batch(128).map(self.meal_tower),
+            ),
+        )
+
+    def compute_loss(
+        self,
+        features: dict[str, tf.Tensor],
+        training: bool = False,
+    ) -> tf.Tensor:
+        user_embeddings = self.user_tower(features["user_vector"])
+        meal_embeddings = self.meal_tower(features["meal_embedding"])
+        return self.task(user_embeddings, meal_embeddings)
+
+
+def _fetch_meal_embeddings(url: str, collection: str) -> tuple[list[str], np.ndarray]:
+    """Scroll all vectors from a Qdrant collection and return (ids, matrix)."""
+    client = QdrantClient(url=url)
+    ids: list[str] = []
+    vectors: list[list[float]] = []
+    offset = None
+    while True:
+        result, offset = client.scroll(
+            collection_name=collection,
+            with_vectors=True,
+            limit=100,
+            offset=offset,
+        )
+        for point in result:
+            ids.append(str(point.id))
+            vectors.append(point.vector)  # type: ignore[arg-type]
+        if offset is None:
+            break
+    return ids, np.array(vectors, dtype=np.float32)
+
 
 @asset(
     description=(
@@ -318,69 +408,47 @@ def customer_vectors(context: AssetExecutionContext) -> pd.DataFrame:
 
 
 @asset(
-    description="Static training data for a simple food preference classifier. "
-    "Features: spicy (0/1), sweet (0/1), salty (0/1), warm (0/1). "
-    "Label: 1 = user likes it, 0 = user dislikes it.",
-    deps=["recipe_vectors", "customer_vectors"],
-)
-def training_data(context: AssetExecutionContext) -> pd.DataFrame:
-    """Return a hardcoded dataset of food preferences."""
-    data = {
-        "spicy": [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
-        "sweet": [0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-        "salty": [1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0],
-        "warm":  [1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0],
-        "liked": [1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1],
-    }
-
-    df = pd.DataFrame(data)
-
-    context.log.info(f"Loaded static training data with shape: {df.shape}")
-    context.log.info(f"Liked distribution:\n{df['liked'].value_counts().to_string()}")
-
-    return df
-
-
-@asset(
-    description="Train a MLPRegressor user-tower that maps 128-dimensional "
-    "profile feature vectors (as produced by picky-api's profile_features module) "
-    "to 100-dimensional food2vec embeddings, then export the model in ONNX format "
-    "to S3 (MinIO). Training data is generated synthetically by (a) featurizing "
-    "synthetic user profiles using the same deterministic random-projection as "
-    "profile_features.rs and (b) constructing per-profile target embeddings by "
-    "mean-pooling food2vec ingredient vectors weighted by each user's stated "
-    "preferences, so the model learns to map user tastes into recipe embedding space.",
+    description=(
+        "Train a two-tower MealRecommender using TensorFlow Recommenders' "
+        "in-batch softmax retrieval loss. The UserTower maps 128-dim profile "
+        "feature vectors (matching picky-api's profile_features module) into "
+        "the 100-dim food2vec meal embedding space. Positive (user, meal) pairs "
+        "are constructed synthetically: user vectors are featurized via the same "
+        "deterministic random-projection as profile_features.rs, and each user's "
+        "paired meal embedding is built by mean-pooling food2vec ingredient vectors "
+        "weighted by their stated preferences. The meal corpus fetched from Qdrant "
+        "is used for FactorizedTopK evaluation metrics. The trained UserTower is "
+        "exported in ONNX format and uploaded to S3 (MinIO)."
+    ),
     deps=["recipe_vectors"],
 )
 def trained_model(
     context: AssetExecutionContext,
     s3: S3Resource,
 ) -> MaterializeResult:
-    """Train a user-tower MLP on semantically meaningful data, convert to ONNX, upload to S3."""
+    """Train the two-tower model with TFRS retrieval loss, export to ONNX, upload to S3."""
     rng = np.random.RandomState(42)
 
-    # Load food2vec vocabulary for target construction.
     embeddings = _load_food2vec(_FOOD2VEC_PATH)
-    context.log.info(f"Loaded {len(embeddings)} food2vec embeddings from {_FOOD2VEC_PATH}")
+    context.log.info(
+        f"Loaded {len(embeddings)} food2vec embeddings from {_FOOD2VEC_PATH}"
+    )
 
-    # Generate synthetic user profiles and featurize them using the same logic
-    # as picky-api/src/profile_features.rs so the training distribution matches
-    # what the model will receive at inference time.
     n_samples = 3000
     X_rows: list[np.ndarray] = []
     y_rows: list[np.ndarray] = []
 
     for _ in range(n_samples):
-        pref_fish  = float(rng.uniform(0.0, 1.0))
-        pref_pork  = float(rng.uniform(0.0, 1.0))
-        pref_beef  = float(rng.uniform(0.0, 1.0))
+        pref_fish = float(rng.uniform(0.0, 1.0))
+        pref_pork = float(rng.uniform(0.0, 1.0))
+        pref_beef = float(rng.uniform(0.0, 1.0))
         pref_dairy = float(rng.uniform(0.0, 1.0))
         pref_spicy = float(rng.uniform(0.0, 1.0))
         adults = int(rng.randint(1, 7))
-        kids   = int(rng.randint(0, 5))
-        health_goal  = str(rng.choice(_HEALTH_GOALS))
+        kids = int(rng.randint(0, 5))
+        health_goal = str(rng.choice(_HEALTH_GOALS))
         cooking_time = str(rng.choice(_COOKING_TIMES))
-        budget       = str(rng.choice(_BUDGETS))
+        budget = str(rng.choice(_BUDGETS))
 
         n_cuisines = int(rng.randint(1, 4))
         cuisines = list(rng.choice(_CUISINES, size=n_cuisines, replace=False))
@@ -393,13 +461,29 @@ def trained_model(
         )
 
         x = _featurize_profile(
-            pref_fish, pref_pork, pref_beef, pref_dairy, pref_spicy,
-            adults, kids, health_goal, cooking_time, budget, cuisines, restrictions,
+            pref_fish,
+            pref_pork,
+            pref_beef,
+            pref_dairy,
+            pref_spicy,
+            adults,
+            kids,
+            health_goal,
+            cooking_time,
+            budget,
+            cuisines,
+            restrictions,
         )
         y = _profile_target(
             embeddings,
-            pref_fish, pref_pork, pref_beef, pref_dairy, pref_spicy,
-            health_goal, cuisines, restrictions,
+            pref_fish,
+            pref_pork,
+            pref_beef,
+            pref_dairy,
+            pref_spicy,
+            health_goal,
+            cuisines,
+            restrictions,
         )
         X_rows.append(x)
         y_rows.append(y)
@@ -407,29 +491,64 @@ def trained_model(
     X = np.array(X_rows, dtype=np.float32)  # (n_samples, 128)
     y = np.array(y_rows, dtype=np.float32)  # (n_samples, 100)
 
-    context.log.info(f"Generated {n_samples} training samples; X shape {X.shape}, y shape {y.shape}")
-
-    model = MLPRegressor(
-        hidden_layer_sizes=(256, 128),
-        activation="relu",
-        max_iter=500,
-        random_state=42,
-        learning_rate_init=0.001,
+    context.log.info(
+        f"Generated {n_samples} training pairs; X shape {X.shape}, y shape {y.shape}"
     )
-    model.fit(X, y)
 
-    train_r2 = model.score(X, y)
-    context.log.info(f"Training R² score: {train_r2:.4f}")
+    # ── Fetch meal corpus from Qdrant for FactorizedTopK metrics ─────────────
+    qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
+    qdrant_collection = os.environ.get("QDRANT_RECIPES_COLLECTION", "recipes")
+    meal_ids: list[str] = []
+    meal_vecs: np.ndarray
 
-    # Convert to ONNX — MLPRegressor outputs a plain float32 tensor of shape
-    # (N, EMBEDDING_DIM); no ZipMap is emitted, so ort can load this without
-    # hitting the unimplemented Map type branch.
-    initial_types = [("features", FloatTensorType([None, USER_VECTOR_DIM]))]
-    onnx_model = convert_sklearn(model, "user_tower", initial_types)
-    model_bytes: bytes = onnx_model.SerializeToString()  # type: ignore[union-attr]
+    try:
+        meal_ids, meal_vecs = _fetch_meal_embeddings(qdrant_url, qdrant_collection)
+        context.log.info(
+            f"Fetched {len(meal_ids)} meal embeddings from Qdrant "
+            f"collection '{qdrant_collection}' for top-K metrics."
+        )
+    except Exception as exc:  # noqa: BLE001
+        context.log.warning(
+            f"Could not fetch meal embeddings from Qdrant ({exc}). "
+            "Falling back to food2vec targets as the metrics corpus."
+        )
+        meal_vecs = y
+
+    meals_ds = tf.data.Dataset.from_tensor_slices(meal_vecs.astype(np.float32))
+
+    interactions_ds = tf.data.Dataset.from_tensor_slices(
+        {
+            "user_vector": X,
+            "meal_embedding": y,
+        }
+    ).shuffle(n_samples, seed=42)
+
+    rec_model = MealRecommender(meals_dataset=meals_ds)
+    rec_model.compile(optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.1))
+
+    history = rec_model.fit(interactions_ds.batch(256), epochs=10, verbose=0)
+
+    final_loss = float(history.history["loss"][-1])
+    context.log.info(f"Training complete. Final retrieval loss: {final_loss:.6f}")
+
+    # Log top-K metrics if they were computed
+    for metric_name, values in history.history.items():
+        if metric_name != "loss":
+            context.log.info(f"  {metric_name}: {float(values[-1]):.4f}")
+
+    # ── Export UserTower to ONNX via tf2onnx ──────────────────────────────────
+    input_signature = (
+        tf.TensorSpec([None, USER_VECTOR_DIM], tf.float32, name="features"),
+    )
+    onnx_proto, _ = tf2onnx.convert.from_keras(
+        rec_model.user_tower,
+        input_signature=input_signature,
+        opset=13,
+    )
+    model_bytes: bytes = onnx_proto.SerializeToString()
     context.log.info(f"ONNX model size: {len(model_bytes)} bytes")
 
-    # Ensure the bucket exists
+    # ── Ensure bucket exists and upload ───────────────────────────────────────
     s3_client = s3.get_client()
     try:
         s3_client.head_bucket(Bucket=S3_BUCKET)
@@ -438,7 +557,6 @@ def trained_model(
         s3_client.create_bucket(Bucket=S3_BUCKET)
         context.log.info(f"Created bucket '{S3_BUCKET}'.")
 
-    # Upload the ONNX model
     with tempfile.NamedTemporaryFile(suffix=".onnx") as tmp:
         tmp.write(model_bytes)
         tmp.flush()
@@ -453,14 +571,16 @@ def trained_model(
 
     return MaterializeResult(
         metadata={
-            "r2_score":          MetadataValue.float(train_r2),
-            "s3_path":           MetadataValue.text(s3_path),
-            "format":            MetadataValue.text("ONNX"),
-            "model_size_bytes":  MetadataValue.int(len(model_bytes)),
-            "input_dim":         MetadataValue.int(USER_VECTOR_DIM),
-            "output_dim":        MetadataValue.int(EMBEDDING_DIM),
-            "samples":           MetadataValue.int(n_samples),
-            "hidden_layers":     MetadataValue.text("(256, 128)"),
-            "food2vec_vocab":    MetadataValue.int(len(embeddings)),
+            "final_loss": MetadataValue.float(final_loss),
+            "s3_path": MetadataValue.text(s3_path),
+            "format": MetadataValue.text("ONNX"),
+            "model_size_bytes": MetadataValue.int(len(model_bytes)),
+            "input_dim": MetadataValue.int(USER_VECTOR_DIM),
+            "output_dim": MetadataValue.int(EMBEDDING_DIM),
+            "samples": MetadataValue.int(n_samples),
+            "hidden_layers": MetadataValue.text("(256, 128)"),
+            "food2vec_vocab": MetadataValue.int(len(embeddings)),
+            "meal_corpus_size": MetadataValue.int(len(meal_ids) or len(meal_vecs)),
+            "loss_fn": MetadataValue.text("TFRS in-batch softmax retrieval"),
         },
     )
