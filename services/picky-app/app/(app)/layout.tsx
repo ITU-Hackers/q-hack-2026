@@ -84,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Toaster
           position="bottom-center"
           containerAriaLabel="Notifications"
-          style={{ bottom: "5rem" }}
+          style={{ bottom: "5rem", "--width": "100vw" } as React.CSSProperties}
         />
       </div>
     </CartProvider>

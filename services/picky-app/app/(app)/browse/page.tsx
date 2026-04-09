@@ -230,42 +230,34 @@ function showPickyToast(
   onDismiss: () => void,
 ) {
   toast.dismiss();
+
   toast.custom(
     (id) => (
-      <div className="relative mx-auto w-[min(320px,80vw)]">
+      <div className="flex w-screen justify-center">
+      <div className="relative flex w-72 flex-col items-center gap-2 rounded-xl border border-border bg-background p-3 text-center shadow-lg">
         <Image
           src="/picky-mascot.png"
           alt="Picky"
           width={96}
           height={96}
-          className="absolute -bottom-1 -left-14 z-10 drop-shadow-lg"
+          className="absolute -top-18 left-1/2 -translate-x-1/2 animate-bounce"
         />
-        <div className="relative flex flex-col items-center gap-2 rounded-xl border border-border bg-background p-3 text-center shadow-lg">
-          <button
-            type="button"
-            className="absolute top-2 right-2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
-            onClick={() => {
-              toast.dismiss(id);
-              onDismiss();
-            }}
-          >
-            <IconX className="size-3.5" />
-          </button>
-          <p className="px-4 text-base font-medium leading-snug text-foreground">
-            {msg}
-          </p>
-          <Button
-            variant="default"
-            size="sm"
-            className="w-full"
-            onClick={() => {
-              toast.dismiss(id);
-              onConfirm();
-            }}
-          >
-            View Cart
-          </Button>
-        </div>
+        <button
+          type="button"
+          className="absolute top-2 right-2 rounded-full p-0.5"
+          onClick={() => { toast.dismiss(id); onDismiss(); }}
+        >
+          <IconX className="size-3.5" />
+        </button>
+        <p className="px-4 text-base font-medium leading-snug">{msg}</p>
+        <Button
+          size="sm"
+          className="w-full"
+          onClick={() => { toast.dismiss(id); onConfirm(); }}
+        >
+          View Cart
+        </Button>
+      </div>
       </div>
     ),
     { duration: Infinity },
