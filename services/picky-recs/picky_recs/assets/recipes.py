@@ -128,13 +128,7 @@ def vectorize(
     embeddings: dict[str, np.ndarray],
     ingredients: list[str],
 ) -> tuple[np.ndarray, int, int]:
-    """Mean-pool food2vec embeddings for a list of ingredient strings.
-
-    Returns:
-        vector:  float32 ndarray of shape (100,)
-        matched: number of ingredients found in the embedding vocabulary
-        total:   total number of ingredients supplied
-    """
+    """Mean-pool food2vec embeddings for a list of ingredient strings."""
     total = len(ingredients)
     accum = np.zeros(FOOD2VEC_DIM, dtype=np.float32)
     matched = 0

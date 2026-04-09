@@ -1,7 +1,6 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
+import { env } from "./env";
 
-// ── Error handling ────────────────────────────────────────────────────────────
+const API_BASE = env.NEXT_PUBLIC_API_URL;
 
 export class ApiError extends Error {
   constructor(
@@ -21,9 +20,6 @@ async function handleResponse<T>(res: Response): Promise<T> {
   throw new ApiError(res.status, text);
 }
 
-// ── Shared types ──────────────────────────────────────────────────────────────
-
-/** Ingredient preference scores (0–100). */
 export interface Preferences {
   fish: number;
   pork: number;
@@ -32,7 +28,6 @@ export interface Preferences {
   spicy: number;
 }
 
-/** A user profile as returned by the API. */
 export interface Profile {
   id: string;
   email: string;
@@ -48,9 +43,6 @@ export interface Profile {
   budget: string;
 }
 
-// ── Profile types ─────────────────────────────────────────────────────────────
-
-/** Request body for creating a new profile. */
 export interface CreateProfilePayload {
   email: string;
   password: string;
@@ -66,7 +58,6 @@ export interface CreateProfilePayload {
   budget?: string;
 }
 
-/** Request body for updating an existing profile (all fields optional). */
 export interface UpdateProfilePayload {
   email?: string;
   password?: string;
@@ -81,8 +72,6 @@ export interface UpdateProfilePayload {
   cooking_time?: string;
   budget?: string;
 }
-
-// ── Recipe types ──────────────────────────────────────────────────────────────
 
 export interface RecipeIngredient {
   id: number;
@@ -101,8 +90,6 @@ export interface Recipe {
   ingredients: RecipeIngredient[];
 }
 
-// ── Recommendation types ──────────────────────────────────────────────────────
-
 export interface RecommendedMeal {
   id: string;
   dish: string;
@@ -115,16 +102,12 @@ export interface RecommendResponse {
   meals: RecommendedMeal[];
 }
 
-// ── Chat types ────────────────────────────────────────────────────────────────
-
 export type ChatEventType = "message" | "error" | "done";
 
 export interface ChatEvent {
   type: ChatEventType;
   data: string;
 }
-
-// ── Profile endpoints ─────────────────────────────────────────────────────────
 
 /**
  * Create a new profile (registration / onboarding completion).
@@ -187,8 +170,6 @@ export async function loginProfile(
   return handleResponse<Profile>(res);
 }
 
-// ── Recipe endpoints ──────────────────────────────────────────────────────────
-
 /**
  * List all recipes with their resolved ingredients.
  * Optionally filter by region (e.g. "Italian", "Asian").
@@ -205,8 +186,6 @@ export async function fetchRecipes(region?: string): Promise<Recipe[]> {
     return [];
   }
 }
-
-// ── Recommendation endpoints ──────────────────────────────────────────────────
 
 /**
  * Get personalised meal recommendations for a profile.
@@ -229,8 +208,6 @@ export async function fetchRecommendations(
   );
   return handleResponse<RecommendResponse>(res);
 }
-
-// ── Chat / SSE endpoint ───────────────────────────────────────────────────────
 
 /**
  * Stream a chat message to the AI agent via Server-Sent Events.
@@ -278,7 +255,6 @@ export async function streamChat(
 
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");
-    // Keep the last (potentially incomplete) line in the buffer.
     buffer = lines.pop() ?? "";
 
     let eventType: ChatEventType = "message";
@@ -293,11 +269,9 @@ export async function streamChat(
       } else if (line.startsWith("data:")) {
         dataLine = line.slice("data:".length).trim();
       } else if (line === "") {
-        // Blank line → dispatch the accumulated event.
         if (dataLine !== "") {
           onEvent({ type: eventType, data: dataLine });
         }
-        // Reset for the next event.
         eventType = "message";
         dataLine = "";
       }

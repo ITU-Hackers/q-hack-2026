@@ -89,8 +89,17 @@ _CUISINE_INGREDIENTS: dict[str, list[str]] = {
     "French": ["butter", "mushroom", "lemon"],
     "Mexican": ["chili", "jalapeno", "tomato"],
     # Extended with confirmed food2vec vocab: turmeric, basmati, cardamom, naan
-    "Indian": ["cumin", "coriander", "curry", "chickpeas", "lentils",
-               "turmeric", "basmati", "cardamom", "naan"],
+    "Indian": [
+        "cumin",
+        "coriander",
+        "curry",
+        "chickpeas",
+        "lentils",
+        "turmeric",
+        "basmati",
+        "cardamom",
+        "naan",
+    ],
     "Mediterranean": ["olive", "feta", "tomato", "eggplant"],
     "American": ["beef", "bacon", "cheese"],
 }
@@ -337,7 +346,7 @@ class MealRecommender(tfrs.Model):
     positive example and treats all other meal embeddings in the same batch as
     negatives — this is the standard in-batch sampled-softmax retrieval loss
     from the TFRS Retrieval task.
-   """
+    """
 
     def __init__(self, meals_dataset: tf.data.Dataset) -> None:
         super().__init__()
@@ -541,7 +550,6 @@ def trained_model(
         if metric_name != "loss":
             context.log.info(f"  {metric_name}: {float(values[-1]):.4f}")
 
-    # ── Export UserTower to ONNX via tf2onnx ──────────────────────────────────
     input_signature = (
         tf.TensorSpec([None, USER_VECTOR_DIM], tf.float32, name="features"),
     )
@@ -553,7 +561,6 @@ def trained_model(
     model_bytes: bytes = onnx_proto.SerializeToString()
     context.log.info(f"ONNX model size: {len(model_bytes)} bytes")
 
-    # ── Ensure bucket exists and upload ───────────────────────────────────────
     s3_client = s3.get_client()
     try:
         s3_client.head_bucket(Bucket=S3_BUCKET)

@@ -14,10 +14,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "../../../components/cart-context";
 
-/* ------------------------------------------------------------------ */
-/*  Canvas confetti                                                    */
-/* ------------------------------------------------------------------ */
-
 interface Particle {
   x: number;
   y: number;
@@ -31,7 +27,7 @@ interface Particle {
 }
 
 const CONFETTI_COLORS = [
-  "#e1171e", // Picnic red
+  "#e1171e",
   "#ff6b6b",
   "#ffd93d",
   "#6bcb77",
@@ -41,10 +37,7 @@ const CONFETTI_COLORS = [
   "#ffffff",
 ];
 
-function spawnConfetti(
-  canvas: HTMLCanvasElement,
-  onDone: () => void,
-) {
+function spawnConfetti(canvas: HTMLCanvasElement, onDone: () => void) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
@@ -61,7 +54,8 @@ function spawnConfetti(
       vx: (Math.random() - 0.5) * 14,
       vy: -Math.random() * 16 - 6,
       size: Math.random() * 8 + 4,
-      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]!,
+      color:
+        CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]!,
       rotation: Math.random() * Math.PI * 2,
       rotationSpeed: (Math.random() - 0.5) * 0.3,
       opacity: 1,
@@ -78,7 +72,7 @@ function spawnConfetti(
 
     for (const p of particles) {
       p.x += p.vx;
-      p.vy += 0.35; // gravity
+      p.vy += 0.35;
       p.y += p.vy;
       p.rotation += p.rotationSpeed;
       if (frame > maxFrames - 60) {
@@ -182,7 +176,7 @@ export default function CartPage() {
     <div className="mx-auto max-w-lg px-4 py-8">
       {/* Celebration overlay */}
       {celebrating && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center">
           {/* Backdrop */}
           <div className="absolute inset-0 animate-[fadeIn_0.3s_ease-out] bg-black/80" />
 
@@ -195,7 +189,10 @@ export default function CartPage() {
           {/* Success card */}
           <div className="relative z-10 flex flex-col items-center gap-4 animate-[scaleIn_0.5s_ease-out]">
             <div className="flex size-20 items-center justify-center rounded-full bg-primary shadow-xl animate-[bounceIn_0.6s_ease-out]">
-              <IconCheck className="size-10 text-primary-foreground" strokeWidth={3} />
+              <IconCheck
+                className="size-10 text-primary-foreground"
+                strokeWidth={3}
+              />
             </div>
             <Image
               src="/picky-mascot.png"

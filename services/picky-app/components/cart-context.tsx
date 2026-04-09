@@ -120,7 +120,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             (i) => i.name === ing.name && i.recipeSource === recipeName,
           );
           if (idx >= 0) {
-            newItems[idx] = { ...newItems[idx]!, quantity: newItems[idx]!.quantity + 1 };
+            newItems[idx] = {
+              ...newItems[idx]!,
+              quantity: newItems[idx]!.quantity + 1,
+            };
           } else {
             newItems.push({
               id: `item-${nextId++}`,
@@ -201,7 +204,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => {
       const merged = [...prev];
       for (const item of pendingItems) {
-        const existing = merged.find((i) => i.name === item.name && i.recipeSource === item.recipeSource);
+        const existing = merged.find(
+          (i) => i.name === item.name && i.recipeSource === item.recipeSource,
+        );
         if (existing) {
           existing.quantity += item.quantity;
         } else {

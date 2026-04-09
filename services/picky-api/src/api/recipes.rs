@@ -95,7 +95,6 @@ pub async fn list(
         )
     })?;
 
-    // Group flat rows into nested RecipeResponse structs.
     let mut recipe_map: HashMap<i32, RecipeResponse> = HashMap::new();
     let mut order: Vec<i32> = Vec::new();
 

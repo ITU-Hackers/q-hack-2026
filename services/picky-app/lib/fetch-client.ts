@@ -23,7 +23,6 @@ const BASE_URL = env.NEXT_PUBLIC_API_URL;
 /** Shape of an API error thrown by this mutator. */
 export interface ApiError {
   status: number;
-  /** Parsed JSON body when the server returns `application/json`, otherwise a plain string. */
   body: unknown;
 }
 
@@ -44,7 +43,6 @@ export const fetchClient = async <T>(
     throw error;
   }
 
-  // 204 No Content (or an explicit Content-Length: 0) — nothing to parse.
   if (
     response.status === 204 ||
     response.headers.get("content-length") === "0"

@@ -60,8 +60,18 @@ pub struct RecommendResponse {
     description = "Given a profile ID, compute the user embedding via the \
     two-tower ONNX model and return the top-k nearest meals from Qdrant.",
     params(
-        ("profile_id" = String, Path, description = "The profile UUID", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-        ("top_k" = Option<u32>, Query, description = "Number of meals to return (default: 5)", example = 5),
+        (
+            "profile_id" = String,
+            Path,
+            description = "The profile UUID",
+            example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        ),
+        (
+            "top_k" = Option<u32>,
+            Query,
+            description = "Number of meals to return (default: 5)",
+            example = 5
+        ),
     ),
     responses(
         (
@@ -104,7 +114,6 @@ pub async fn handler(
     Path(profile_id): Path<Uuid>,
     Query(query): Query<RecommendQuery>,
 ) -> HandlerResult<Json<RecommendResponse>> {
-    // ── 1. Fetch profile from PostgreSQL ────────────────────────────────────
     let profile = sqlx::query_as!(
         ProfileRow,
         "SELECT id, email, password, adults, kids, dogs, cats, cuisines, \
@@ -135,10 +144,8 @@ pub async fn handler(
         )
     })?;
 
-    // ── 2. Featurize profile → 128-dim vector ────────────────────────────────
     let user_vec: [f32; 128] = profile_features::featurize(&profile);
 
-    // ── 3. Run ONNX user tower → 100-dim embedding ───────────────────────────
     let model_guard = model_state.load();
     let model = model_guard.as_ref().as_ref().ok_or_else(|| {
         HandlerError::new(
@@ -157,7 +164,6 @@ pub async fn handler(
         )
     })?;
 
-    // ── 4. Qdrant ANN search ─────────────────────────────────────────────────
     let query_vec: Vec<f32> = embedding.to_vec();
     let collection = CONFIG.QDRANT_COLLECTION.as_ref();
 
@@ -177,7 +183,6 @@ pub async fn handler(
             )
         })?;
 
-    // ── 5. Map scored points → response ──────────────────────────────────────
     let meals: Vec<RecommendedMeal> = search_response
         .result
         .into_iter()
@@ -206,8 +211,6 @@ pub async fn handler(
 
     Ok(Json(RecommendResponse { meals }))
 }
-
-// ── Payload extraction helpers ───────────────────────────────────────────────
 
 fn extract_string(
     payload: &std::collections::HashMap<String, qdrant_client::qdrant::Value>,

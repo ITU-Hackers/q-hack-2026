@@ -48,13 +48,8 @@ def seed_synthetic_users(context: AssetExecutionContext) -> MaterializeResult:
     db_url = os.environ.get("TRAINING_DB_URL", _DEFAULT_DB_URL)
     conn = connect_db(db_url)
 
-    # Ensure schema exists before the idempotency check — on a fresh database
-    # the synthetic_users table won't exist yet, so the SELECT below would fail
-    # with "relation does not exist" without this call first.
-    # create_schema uses CREATE TABLE IF NOT EXISTS so it is safe to call every run.
     create_schema(conn, clear_existing=False)
 
-    # Idempotency check
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM synthetic_users")
         row = cur.fetchone()
@@ -86,10 +81,8 @@ def seed_synthetic_users(context: AssetExecutionContext) -> MaterializeResult:
         if idx % 50 == 49:
             context.log.info(f"  Generated orders for {idx + 1}/{len(users)} users…")
 
-    # Insert users → assign db_ids
     insert_users(conn, users)
 
-    # Bind user db_ids → flatten orders
     all_orders = []
     for idx, user in enumerate(users):
         for order in user_orders[idx]:
@@ -98,7 +91,6 @@ def seed_synthetic_users(context: AssetExecutionContext) -> MaterializeResult:
 
     insert_orders(conn, all_orders)
 
-    # Bind order db_ids → flatten items
     all_items = []
     for order in all_orders:
         for item in order.items:

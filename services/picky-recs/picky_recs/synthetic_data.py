@@ -5,6 +5,7 @@ Used by both:
 - scripts/generate_synthetic_users.py  (standalone CLI)
 - picky_recs/assets/seed_synthetic_users.py  (Dagster asset)
 """
+
 from __future__ import annotations
 
 import calendar

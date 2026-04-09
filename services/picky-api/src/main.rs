@@ -69,7 +69,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build(),
     );
 
-    // Spawn the background model watcher (polls S3 for user-tower model changes).
     let (shared_model, _model_watcher_handle) = model_watcher::spawn(
         s3_client,
         CONFIG.S3_BUCKET.to_string(),
@@ -77,10 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None,
     );
 
-    // Connect to PostgreSQL.
     let db_pool = sqlx::PgPool::connect(CONFIG.DATABASE_URL.as_ref()).await?;
-
-    // Build the Qdrant gRPC client for ANN recipe search.
     let qdrant = Arc::new(Qdrant::from_url(CONFIG.QDRANT_URL_GRPC.as_ref()).build()?);
 
     let agent = Arc::new(agent::build_agent().await?);

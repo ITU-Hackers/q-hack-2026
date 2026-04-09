@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/components/user-context";
-import { fetchRecommendations, fetchRecipes, type Recipe } from "@/lib/api";
+import { fetchRecipes, fetchRecommendations, type Recipe } from "@/lib/api";
 import { useCart } from "../../../components/cart-context";
 
 function normaliseName(name: string): string {
@@ -239,7 +239,9 @@ export default function BrowsePage() {
         }
         setRecommendedRecipes(matched);
       })
-      .catch(() => {/* model not ready — carousel stays hidden */});
+      .catch(() => {
+        /* model not ready — carousel stays hidden */
+      });
   }, [user, recipes]);
 
   // Trigger prediction once recipes are loaded and cart is empty (not in auto mode).
@@ -351,9 +353,13 @@ export default function BrowsePage() {
     toast.dismiss();
     setToastDismissed(true);
     toast.custom(
-      (id) => (
+      (_id) => (
         <div className="pointer-events-none flex w-screen justify-center">
-          <button type="button" onClick={() => toast.dismiss()} className="pointer-events-auto flex w-72 items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-lg">
+          <button
+            type="button"
+            onClick={() => toast.dismiss()}
+            className="pointer-events-auto flex w-72 items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-lg"
+          >
             <span className="text-2xl">{recipe.emoji}</span>
             <p className="flex-1 text-left text-sm font-medium leading-snug">
               {recipe.dish.replace(/_/g, " ")} added to cart
@@ -444,7 +450,7 @@ export default function BrowsePage() {
         <button
           type="button"
           onClick={reopenToast}
-          className="fixed bottom-20 right-4 z-[10000] flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-20 right-4 z-10000 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
         >
           <IconSparkles className="size-5" />
         </button>

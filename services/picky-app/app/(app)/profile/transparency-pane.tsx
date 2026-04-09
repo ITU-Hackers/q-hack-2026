@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
-  IconFlag,
-  IconCheck,
-  IconArrowUp,
   IconArrowDown,
-  IconSparkles,
-  IconHistory,
+  IconArrowUp,
   IconBrain,
+  IconCheck,
+  IconFlag,
+  IconHistory,
+  IconSparkles,
 } from "@tabler/icons-react";
+import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -17,12 +17,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
 import { Separator } from "@workspace/ui/components/separator";
 import { Textarea } from "@workspace/ui/components/textarea";
-import type { Profile } from "@/lib/api";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { useEffect, useState } from "react";
 
 interface CorrectionEntry {
   id: string;
@@ -62,13 +59,15 @@ interface AffinityState {
   spicy: number;
 }
 
-// ─── Habit Simulation Rules ───────────────────────────────────────────────────
-
 type HabitRule = {
   keywords: string[];
   delta?: Partial<AffinityState>;
   restrictions?: string[];
-  profile?: Partial<{ budget: string; cooking_time: string; health_goal: string }>;
+  profile?: Partial<{
+    budget: string;
+    cooking_time: string;
+    health_goal: string;
+  }>;
 };
 
 const HABIT_RULES: HabitRule[] = [
@@ -78,7 +77,14 @@ const HABIT_RULES: HabitRule[] = [
     profile: { health_goal: "high-protein" },
   },
   {
-    keywords: ["healthy", "clean eating", "whole foods", "balanced", "diet", "nutrition"],
+    keywords: [
+      "healthy",
+      "clean eating",
+      "whole foods",
+      "balanced",
+      "diet",
+      "nutrition",
+    ],
     delta: { spicy: -15, dairy: -10 },
   },
   {
@@ -135,7 +141,11 @@ function simulate(
 ): SimulationResult {
   const lower = text.toLowerCase();
   const affinityAccum: Partial<AffinityState> = {};
-  const profileAccum: Partial<{ budget: string; cooking_time: string; health_goal: string }> = {};
+  const profileAccum: Partial<{
+    budget: string;
+    cooking_time: string;
+    health_goal: string;
+  }> = {};
   const newRestrictions: string[] = [];
 
   for (const rule of HABIT_RULES) {
@@ -160,7 +170,11 @@ function simulate(
     }
   }
 
-  const AFFINITY_META: { key: keyof AffinityState; label: string; emoji: string }[] = [
+  const AFFINITY_META: {
+    key: keyof AffinityState;
+    label: string;
+    emoji: string;
+  }[] = [
     { key: "fish", label: "Fish", emoji: "🐟" },
     { key: "pork", label: "Pork", emoji: "🐷" },
     { key: "beef", label: "Beef", emoji: "🥩" },
@@ -182,8 +196,16 @@ function simulate(
 
   const PROFILE_LABELS: Record<string, Record<string, string>> = {
     budget: { budget: "Budget", moderate: "Moderate", flexible: "Flexible" },
-    cooking_time: { quick: "Quick", moderate: "Moderate", enthusiast: "Enthusiast" },
-    health_goal: { balanced: "Balanced", mediterranean: "Mediterranean", "high-protein": "High Protein" },
+    cooking_time: {
+      quick: "Quick",
+      moderate: "Moderate",
+      enthusiast: "Enthusiast",
+    },
+    health_goal: {
+      balanced: "Balanced",
+      mediterranean: "Mediterranean",
+      "high-protein": "High Protein",
+    },
   };
 
   const profileDeltas: ProfileDelta[] = [];
@@ -193,7 +215,12 @@ function simulate(
       const labelMap = PROFILE_LABELS[k] ?? {};
       profileDeltas.push({
         key: k,
-        label: k === "budget" ? "Budget" : k === "cooking_time" ? "Cooking time" : "Health goal",
+        label:
+          k === "budget"
+            ? "Budget"
+            : k === "cooking_time"
+              ? "Cooking time"
+              : "Health goal",
         oldVal: labelMap[oldVal] ?? oldVal,
         newVal: labelMap[newVal] ?? newVal,
       });
@@ -202,8 +229,6 @@ function simulate(
 
   return { affinityDeltas, profileDeltas, newRestrictions };
 }
-
-// ─── Affinity Bar ─────────────────────────────────────────────────────────────
 
 const AFFINITY_META = [
   { key: "fish" as const, label: "Fish", emoji: "🐟" },
@@ -237,10 +262,7 @@ function AffinityBar({
   );
 }
 
-// ─── Inline Flag Form ─────────────────────────────────────────────────────────
-
 function InlineFlagForm({
-  dimension,
   label,
   currentValue,
   onSubmit,
@@ -269,11 +291,7 @@ function InlineFlagForm({
         <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => onSubmit(note)}
-        >
+        <Button variant="destructive" size="sm" onClick={() => onSubmit(note)}>
           Submit correction
         </Button>
       </div>
@@ -293,14 +311,14 @@ const DEMO_HEALTH_GOAL = "high-protein";
 const DEMO_COOKING_TIME = "quick";
 const DEMO_RESTRICTIONS = ["gluten-free"];
 
-export function TransparencyPane({ user }: { user: Profile }) {
+export function TransparencyPane() {
   const [activeFlag, setActiveFlag] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [habitText, setHabitText] = useState("");
-  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+  const [simulationResult, setSimulationResult] =
+    useState<SimulationResult | null>(null);
   const [corrections, setCorrections] = useState<CorrectionEntry[]>([]);
 
-  // Hydrate corrections from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem(CORRECTIONS_KEY);
@@ -319,7 +337,12 @@ export function TransparencyPane({ user }: { user: Profile }) {
     }
   }
 
-  function handleFlagSubmit(dimension: string, label: string, currentValue: string, note: string) {
+  function handleFlagSubmit(
+    dimension: string,
+    label: string,
+    currentValue: string,
+    note: string,
+  ) {
     const entry: CorrectionEntry = {
       id: `${Date.now()}-${Math.random()}`,
       dimension,
@@ -338,7 +361,11 @@ export function TransparencyPane({ user }: { user: Profile }) {
     const result = simulate(
       habitText,
       DEMO_PREFERENCES,
-      { budget: DEMO_BUDGET, cooking_time: DEMO_COOKING_TIME, health_goal: DEMO_HEALTH_GOAL },
+      {
+        budget: DEMO_BUDGET,
+        cooking_time: DEMO_COOKING_TIME,
+        health_goal: DEMO_HEALTH_GOAL,
+      },
       DEMO_RESTRICTIONS,
     );
     setSimulationResult(result);
@@ -366,15 +393,16 @@ export function TransparencyPane({ user }: { user: Profile }) {
   }
 
   // Build simulated affinity values for display
-  const simulatedAffinity: AffinityState | null = simulationResult && hasSimulationOutput
-    ? (() => {
-        const next = { ...DEMO_PREFERENCES };
-        for (const d of simulationResult.affinityDeltas) {
-          next[d.key] = d.newVal;
-        }
-        return next;
-      })()
-    : null;
+  const simulatedAffinity: AffinityState | null =
+    simulationResult && hasSimulationOutput
+      ? (() => {
+          const next = { ...DEMO_PREFERENCES };
+          for (const d of simulationResult.affinityDeltas) {
+            next[d.key] = d.newVal;
+          }
+          return next;
+        })()
+      : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -422,7 +450,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
                         {simVal !== undefined && simVal !== raw && (
                           <span
                             className={
-                              simVal > raw ? "text-green-500 ml-1" : "text-red-400 ml-1"
+                              simVal > raw
+                                ? "text-green-500 ml-1"
+                                : "text-red-400 ml-1"
                             }
                           >
                             {simVal > raw ? (
@@ -443,7 +473,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
                           variant="ghost"
                           size="icon-sm"
                           className="text-muted-foreground hover:text-destructive"
-                          onClick={() => setActiveFlag(isActive ? null : flagId)}
+                          onClick={() =>
+                            setActiveFlag(isActive ? null : flagId)
+                          }
                           title="Flag inaccuracy"
                         >
                           <IconFlag className="size-3.5" />
@@ -522,7 +554,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
                       dimension={id}
                       label={label}
                       currentValue={value}
-                      onSubmit={(note) => handleFlagSubmit(id, label, value, note)}
+                      onSubmit={(note) =>
+                        handleFlagSubmit(id, label, value, note)
+                      }
                       onCancel={() => setActiveFlag(null)}
                     />
                   )}
@@ -536,7 +570,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
               const isActive = activeFlag === id;
               const isSubmitted = submitted === id;
               const value =
-                DEMO_RESTRICTIONS.length > 0 ? DEMO_RESTRICTIONS.join(", ") : "None";
+                DEMO_RESTRICTIONS.length > 0
+                  ? DEMO_RESTRICTIONS.join(", ")
+                  : "None";
               return (
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
@@ -549,7 +585,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-xs text-muted-foreground">None</span>
+                        <span className="text-xs text-muted-foreground">
+                          None
+                        </span>
                       )}
                       {isSubmitted ? (
                         <span className="text-green-500">
@@ -573,7 +611,9 @@ export function TransparencyPane({ user }: { user: Profile }) {
                       dimension={id}
                       label="Restrictions"
                       currentValue={value}
-                      onSubmit={(note) => handleFlagSubmit(id, "Restrictions", value, note)}
+                      onSubmit={(note) =>
+                        handleFlagSubmit(id, "Restrictions", value, note)
+                      }
                       onCancel={() => setActiveFlag(null)}
                     />
                   )}
@@ -594,7 +634,8 @@ export function TransparencyPane({ user }: { user: Profile }) {
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm">
           <p className="text-muted-foreground text-xs">
-            What&apos;s changing in your life? Picky will reflect that in your profile.
+            What&apos;s changing in your life? Picky will reflect that in your
+            profile.
           </p>
           <Textarea
             placeholder="e.g. I'm going on a bulk, no peanuts, want to eat healthy"
@@ -616,7 +657,8 @@ export function TransparencyPane({ user }: { user: Profile }) {
 
           {simulationResult && !hasSimulationOutput && (
             <p className="text-xs text-muted-foreground italic">
-              No changes detected — try describing a dietary shift or lifestyle change.
+              No changes detected — try describing a dietary shift or lifestyle
+              change.
             </p>
           )}
 

@@ -20,28 +20,16 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/components/user-context";
 import { TransparencyPane } from "./transparency-pane";
 
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
 export default function ProfilePage() {
   const { user, logout } = useUser();
   const router = useRouter();
 
-  // The (app) layout already handles the unauthenticated redirect,
-  // but guard here too in case of a brief render before that effect fires.
   if (!user) return null;
 
   function handleSignOut() {
     logout();
     router.replace("/");
   }
-
-  const cuisinesLabel =
-    user.cuisines.length > 0 ? user.cuisines.join(", ") : "None selected";
-
-  const restrictionsLabel =
-    user.restrictions.length > 0 ? user.restrictions.join(", ") : "None";
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
@@ -55,7 +43,9 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Email</span>
-            <span className="font-medium truncate max-w-[60%] text-right">{user.email}</span>
+            <span className="font-medium truncate max-w-[60%] text-right">
+              {user.email}
+            </span>
           </CardContent>
         </Card>
 
@@ -105,7 +95,10 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {[
-              { label: "Cuisines", value: "1. Italian · 2. Asian · 3. Mediterranean" },
+              {
+                label: "Cuisines",
+                value: "1. Italian · 2. Asian · 3. Mediterranean",
+              },
               { label: "Restrictions", value: "Gluten-free" },
               { label: "Health goal", value: "High protein" },
               { label: "Cooking time", value: "Quick (under 30 min)" },
@@ -114,7 +107,9 @@ export default function ProfilePage() {
               <div key={label}>
                 <div className="flex items-center justify-between py-1">
                   <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium text-right max-w-[60%]">{value}</span>
+                  <span className="font-medium text-right max-w-[60%]">
+                    {value}
+                  </span>
                 </div>
                 {i < arr.length - 1 && <Separator />}
               </div>
@@ -123,7 +118,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Transparency Pane */}
-        <TransparencyPane user={user} />
+        <TransparencyPane />
 
         {/* Sign out */}
         <Button variant="outline" className="w-full" onClick={handleSignOut}>

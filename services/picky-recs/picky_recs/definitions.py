@@ -13,7 +13,13 @@ from picky_recs.resources import s3_resource
 from picky_recs.schedules import training_schedule
 
 defs = Definitions(
-    assets=[customer_vectors, trained_model, seed_synthetic_users, recipe_collection, recipe_vectors],
+    assets=[
+        customer_vectors,
+        trained_model,
+        seed_synthetic_users,
+        recipe_collection,
+        recipe_vectors,
+    ],
     resources={"s3": s3_resource},
     jobs=[training_job, recipe_seeding_job],
     schedules=[training_schedule],

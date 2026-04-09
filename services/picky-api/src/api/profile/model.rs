@@ -4,26 +4,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-/// Ingredient preference scores (0–100).
-#[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
-pub struct Preferences {
-    /// Preference score for fish (0–100).
-    #[schema(minimum = 0, maximum = 100, example = 75)]
-    pub fish: i32,
-    /// Preference score for pork (0–100).
-    #[schema(minimum = 0, maximum = 100, example = 0)]
-    pub pork: i32,
-    /// Preference score for beef (0–100).
-    #[schema(minimum = 0, maximum = 100, example = 0)]
-    pub beef: i32,
-    /// Preference score for dairy (0–100).
-    #[schema(minimum = 0, maximum = 100, example = 0)]
-    pub dairy: i32,
-    /// Preference score for spicy food (0–100).
-    #[schema(minimum = 0, maximum = 100, example = 0)]
-    pub spicy: i32,
-}
-
 /// A user profile stored in the database.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct ProfileRow {
@@ -84,6 +64,26 @@ pub struct Profile {
     /// Budget level (e.g. "budget", "moderate", "flexible").
     #[schema(example = "flexible")]
     pub budget: String,
+}
+
+/// Ingredient preference scores (0–100).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
+pub struct Preferences {
+    /// Preference score for fish (0–100).
+    #[schema(minimum = 0, maximum = 100, example = 75)]
+    pub fish: i32,
+    /// Preference score for pork (0–100).
+    #[schema(minimum = 0, maximum = 100, example = 0)]
+    pub pork: i32,
+    /// Preference score for beef (0–100).
+    #[schema(minimum = 0, maximum = 100, example = 0)]
+    pub beef: i32,
+    /// Preference score for dairy (0–100).
+    #[schema(minimum = 0, maximum = 100, example = 0)]
+    pub dairy: i32,
+    /// Preference score for spicy food (0–100).
+    #[schema(minimum = 0, maximum = 100, example = 0)]
+    pub spicy: i32,
 }
 
 impl From<ProfileRow> for Profile {

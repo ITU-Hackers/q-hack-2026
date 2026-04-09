@@ -92,7 +92,6 @@ async fn check_and_reload(
     shared: &SharedModel,
     last_etag: &mut Option<String>,
 ) -> anyhow::Result<bool> {
-    // HEAD the object to get current ETag without downloading the body.
     let head = s3_client.head_object().bucket(bucket).key(key).send().await;
 
     let head = match head {
@@ -102,7 +101,7 @@ async fn check_and_reload(
             // responses carry no body the SDK cannot parse it into a typed
             // error variant — it surfaces as `SdkError::ServiceError` with an
             // unhandled code, or in some SDK versions as
-            // `SdkError::ResponseError`.  Check the raw HTTP status instead.
+            // `SdkError::ResponseError`. Check the raw HTTP status instead.
             let is_not_found = match &e {
                 SdkError::ServiceError(ctx) => ctx.raw().status().as_u16() == 404,
                 SdkError::ResponseError(ctx) => ctx.raw().status().as_u16() == 404,
@@ -118,8 +117,6 @@ async fn check_and_reload(
                 return Ok(false);
             }
 
-            // Dispatch failures are transient network errors (S3/MinIO unreachable).
-            // Log at debug and retry next interval rather than spamming WARN.
             if matches!(e, SdkError::DispatchFailure(_)) {
                 tracing::debug!(
                     bucket,
@@ -129,8 +126,7 @@ async fn check_and_reload(
                 );
                 return Ok(false);
             }
-            // Preserve the full SdkError (connection, dispatch, service, etc.)
-            // so logs show the real root cause (e.g. DNS failure, bad creds).
+
             return Err(anyhow::anyhow!(
                 "S3 HeadObject failed (bucket={bucket}, key={key}): {e:#}"
             ));
@@ -139,7 +135,6 @@ async fn check_and_reload(
 
     let current_etag = head.e_tag().map(String::from);
 
-    // If the ETag hasn't changed, skip.
     if current_etag.is_some() && current_etag == *last_etag {
         return Ok(false);
     }
@@ -152,10 +147,8 @@ async fn check_and_reload(
         "ETag changed — downloading new model"
     );
 
-    // Download and load the new model.
     let model = OnnxModel::from_s3(s3_client, bucket, key).await?;
 
-    // Atomically swap the model.
     shared.store(Arc::new(Some(model)));
 
     *last_etag = current_etag;

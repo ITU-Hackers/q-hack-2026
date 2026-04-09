@@ -25,12 +25,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(
-        agent: SharedAgent,
-        model: ModelState,
-        db: DbState,
-        qdrant: QdrantState,
-    ) -> Self {
+    pub fn new(agent: SharedAgent, model: ModelState, db: DbState, qdrant: QdrantState) -> Self {
         Self {
             agent,
             model,

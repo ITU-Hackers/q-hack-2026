@@ -69,7 +69,6 @@ pub async fn handler(
         )
     })?;
 
-    // Flatten preference fields for the query.
     let pref_fish = payload.preferences.as_ref().map(|p| p.fish);
     let pref_pork = payload.preferences.as_ref().map(|p| p.pork);
     let pref_beef = payload.preferences.as_ref().map(|p| p.beef);
