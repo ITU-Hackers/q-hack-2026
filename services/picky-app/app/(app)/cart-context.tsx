@@ -137,7 +137,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const confirmBasket = useCallback(() => {
-    setItems(pendingItems);
+    setItems((prev) => {
+      const merged = [...prev];
+      for (const item of pendingItems) {
+        const existing = merged.find((i) => i.name === item.name && i.recipeSource === item.recipeSource);
+        if (existing) {
+          existing.quantity += item.quantity;
+        } else {
+          merged.push(item);
+        }
+      }
+      return merged;
+    });
+    setSelectedRecipes((prev) => {
+      const newNames = pendingItems.map((i) => i.recipeSource);
+      return [...new Set([...prev, ...newNames])];
+    });
     setPendingItems([]);
     setPendingMessage(null);
     setNotification(null);

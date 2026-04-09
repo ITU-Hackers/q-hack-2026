@@ -97,13 +97,11 @@ function DishRow({
   );
 }
 
-function showPickyToast(
+function createPickyToast(
   msg: string,
   onConfirm: () => void,
   onDismiss: () => void,
 ) {
-  toast.dismiss();
-
   toast.custom(
     (id) => (
       <div className="flex w-screen justify-center">
@@ -135,6 +133,15 @@ function showPickyToast(
     ),
     { duration: Infinity },
   );
+}
+
+function showPickyToast(
+  msg: string,
+  onConfirm: () => void,
+  onDismiss: () => void,
+) {
+  toast.dismiss();
+  setTimeout(() => createPickyToast(msg, onConfirm, onDismiss), 400);
 }
 
 export default function BrowsePage() {
@@ -209,8 +216,20 @@ export default function BrowsePage() {
 
   const handleAdd = (recipe: Recipe) => {
     addRecipe(recipe.dish.replace(/_/g, " "), recipe.ingredients);
-    toast.success(
-      `${recipe.emoji} ${recipe.dish.replace(/_/g, " ")} added to cart!`,
+    toast.dismiss();
+    setToastDismissed(true);
+    toast.custom(
+      (id) => (
+        <div className="pointer-events-none flex w-screen justify-center">
+          <button type="button" onClick={() => toast.dismiss()} className="pointer-events-auto flex w-72 items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-lg">
+            <span className="text-2xl">{recipe.emoji}</span>
+            <p className="flex-1 text-left text-sm font-medium leading-snug">
+              {recipe.dish.replace(/_/g, " ")} added to cart
+            </p>
+          </button>
+        </div>
+      ),
+      { duration: 2000, className: "!pointer-events-none" },
     );
   };
 
@@ -261,7 +280,7 @@ export default function BrowsePage() {
         <button
           type="button"
           onClick={reopenToast}
-          className="fixed bottom-20 right-4 z-50 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
+          className="fixed bottom-20 right-4 z-[10000] flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
         >
           <IconSparkles className="size-5" />
         </button>
